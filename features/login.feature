@@ -7,10 +7,8 @@ Feature: Login Functionality
     Then the backpack shoud be on cart
 
 
-  Scenario: I add all the products to card and i check out
+  Scenario: I add all the products to cart and i check out
     When I add all the products to the cart
-    And I click on cart
-    And I proceed to Check out
-    And I put my delivery inforamtion
-    And I finish the check out
-    Then I should be see Thank you for your order!
+    And I click on cart and proceed check out
+    And I put my delivery information
+    Then I should see Thank you for your order!
