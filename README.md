@@ -1,6 +1,6 @@
 ### Hi there 👋, my name is Cristian
 #### I am a software automation test engineer
-![I am a software automation test engineer](https://i.postimg.cc/CK9zdTbH/3813d15a-3c82-4a37-b5cd-ae8eb8a79f19.webp)
+![I am a software automation test engineer](https://i.postimg.cc/DzNsXfW8/c46af4de-23b3-4089-9cf0-2ff46d6407a0.webp)
 
 I made this project just for fun, it allows to see my my project in test automation that i use to train my skills with .
 
