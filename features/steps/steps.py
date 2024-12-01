@@ -32,8 +32,24 @@ def add_all_items(context):
             button.click()
         except:
             pass
-@when("I click on cart")
+@when("I click on cart and proceed check out")
 def Iclickoncart(context):
     assert context.driver.current_url=="https://www.saucedemo.com/inventory.html"
     context.driver.find_element(By.CSS_SELECTOR,"a[class='shopping_cart_link']").click()
-    time.sleep(6)
+    context.driver.find_element(By.ID,"checkout").click()
+@when("I put my delivery information")
+def check_out(context):
+    firstn=context.driver.find_element(By.ID,"first-name")
+    firstn.send_keys("Antoine")
+    context.driver.find_element(By.ID, "last-name").send_keys("Dupont")
+    context.driver.find_element(By.ID,"postal-code").send_keys("75000")
+    context.driver.save_screenshot("features/checkout.png")
+    context.driver.find_element(By.ID, "continue").click()
+    context.driver.find_element(By.ID, "finish").click()
+
+@then("I should see Thank you for your order!")
+def order_bye(context):
+    assert context.driver.current_url=="https://www.saucedemo.com/checkout-complete.html"
+    header_element = context.driver.find_element(By.CSS_SELECTOR, ".complete-header")
+    assert  header_element.text == "Thank you for your order!"
+    context.driver.save_screenshot("features/Thank you for your.png")
