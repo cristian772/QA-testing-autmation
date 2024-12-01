@@ -1,2 +1,2 @@
 # QA-testing-autmation
-qa testing automation portofolio
+qa testing automation portofolio Bargan Cristian 
