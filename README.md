@@ -8,7 +8,7 @@ Skills: Python/ Gherkin (Cocumber) / Selenium / HTML(basiscs) / CSS(basics)/Locu
 
 - 🔭 I’m currently working on this page. 
 - 🌱 I’m currently learning Postman,Playwright and Java 
-- 📫 How to reach me: Bargan.Cristian@gmail.com 
+- 📫 How to reach me: Bargan.Cristian01@gmail.com 
 
 
 [<img src='https://cdn.jsdelivr.net/npm/simple-icons@3.0.1/icons/github.svg' alt='github' height='40'>](https://github.com/cristian772)  [<img src='https://cdn.jsdelivr.net/npm/simple-icons@3.0.1/icons/linkedin.svg' alt='linkedin' height='40'>](https://www.linkedin.com/in//cristian-bargan-992727251/)  
