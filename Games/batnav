@@ -1,0 +1,1467 @@
+import webbrowser
+import pyinputplus as pyip
+from time import sleep
+import os
+import random
+import csv
+
+alphabet = "ABCDEFGHIJ"
+b = ['PA', 'SM', 'T ', 'C ', 'CT']  # LISTE de tout le types de bateaux
+
+
+#####################################
+
+
+
+
+def verif_coord(matrice, i, j):
+    """ Matrice*int*int -> Bool
+    Prend en entrée un tuple (i,j) qui représente la case de la ligne i et de la colonne j
+    renvoie True si toutes les cases autour sont inocupéees et False sinon """
+
+    adjacentes = [(i - 1 - 1, j - 1 - 1), (i - 1 - 1, j - 1), (i - 1 - 1, j), (i, j - 1 - 1), (i - 1, j),
+                  (i - 1, j - 1 - 1), (i, j - 1), (i, j)]  # coordonnées des cases adjacentes
+    for (x, y) in adjacentes:
+        if x >= 0 and x < len(matrice) and y >= 0 and y < len(matrice[0]):
+            if matrice[x][y] != "..":  # la case adjacente n'est pas vide
+                return False
+    return True
+
+
+def print_game_board(L):
+    # print("plateau actuel")
+    print('   ', '     '.join(str(i) for i in range(1, 11)))  # première ligne avec les chiffres
+    for i, row in enumerate(L):
+        print(chr(i + 65), (row))  # indices de lignes en lettres
+
+
+
+
+
+
+
+def bateaux():
+    Porte_Avion = ["PA", "PA", "PA", "PA", "PA"]  # Liste de 5 porte-avions avec le nom "PA"
+    Croiseur = ["C ", "C ", "C ", "C "]  # Liste de 4 croiseurs avec le nom "C"
+    Contre_Torpilleur = ["CT", "CT", "CT"]  # Liste de 3 contre-torpilleurs avec le nom "CT"
+    Sous_Marin = ["SM", "SM", "SM"]  # Liste de 3 sous-marins avec le nom "SM"
+    Torpilleur = ["T ", "T "]  # Liste de 2 torpilleurs avec le nom "T"
+
+    bateaux_variables = locals()  # Obtient un dictionnaire des variables locales
+
+    return bateaux_variables
+
+
+Dic = bateaux()  # Appelle la fonction bateaux() et stocke le résultat dans la variable Dic
+
+
+# print(Dic)
+
+
+def placement():
+
+    global joueur  # Joueur est un booléen variable du code qui vaut True si il y a au moins un joueur humain
+
+    plateau = [[".."] * 10 for i in range(10)]
+
+    if joueur:
+
+        L1 = []  # liste qui contiendra les bateaux déjà placés pour générer une erreur si le bateau choisi est déjà placé
+
+        while len(L1) != len(Dic.keys()):
+
+            print("plateau actuel")
+            print_game_board(plateau)
+
+            while True:
+                # print("Porte_Avion(5cases)', 'Croiseur(4cases)', 'Contre_Torpilleur(3cases)', 'Sous_Marin(3cases)', 'Torpilleur(2cases)'")
+                bateau = pyip.inputMenu(
+                    ['Porte_Avion(5cases)', 'Croiseur(4cases)', 'Contre_Torpilleur(3cases)', 'Sous_Marin(3cases)',
+                     'Torpilleur(2cases)'],
+                    "Quel bateau voulez vous placer ? \n", numbered=True)
+                bateau = bateau.split("(")[0]
+                if bateau not in Dic.keys():
+                    print("Ce bateau n'existe pas")
+                    break
+
+                if bateau in L1:
+                    print("\n")
+                    print("Ce bateau a déjà été placé")
+                    break
+
+                # direction = pyip.inputMenu(['horizontale','verticale',],
+                #                            "Dans quelle direction voulez placer votre bateau ? \n",
+                #                             numbered=True).lower()
+                print("Dans quelle direction voulez placer votre bateau ? ")
+                print('1.Horizontale')
+                print('2.Verticale')
+                direction = str(input(':'))
+                direction = direction.lower()
+                choix = 'h', 'v', 'horizontale', 'verticale', 'H', 'V', 'Horizontale', 'Verticale', '1', '2'
+                while direction not in choix:
+                    print("Dans quelle direction voulez placer votre bateau ? ")
+                    print('1.Horizontale')
+                    print('2.Verticale')
+                    direction = str(input(':'))
+
+                direction = direction.lower()
+                print_game_board(plateau)
+
+                if direction == "horizontale" or direction == 'h' or direction == '1':
+
+                    compte = 0
+
+                    l = str(pyip.inputStr(
+                        "Choissisez la coordonnée la plus haute (en haut à droite) pour placer votre bateau. \n"))
+                    l = l.upper()
+                    l = l.replace('', ',').split(",")
+                    if l[2] == '1' and l[3] == '0':
+                        coordonnée = (ord(l[1]) - 64, 10)
+
+                    elif len(l) == 4:
+                        coordonnée = (ord(l[1]) - 64, int(l[2]))
+
+                    ligne = coordonnée[0]
+
+                    min_ligne = coordonnée[1]
+
+                    if min_ligne + len(Dic[bateau]) - 1 > 10:
+                        print("Ce placement est impossible")
+                        break
+
+                    for k in range(len(Dic[bateau])):
+
+                        if verif_coord(plateau, ligne, min_ligne + k):
+                            compte += 1
+
+                    if compte == len(Dic[bateau]):
+
+                        for k in range(len(Dic[bateau])):
+                            plateau[ligne - 1][min_ligne + k - 1] = Dic[bateau][0]
+
+                        L1.append(bateau)
+
+                    else:
+                        print("Ce placement est impossible")
+                        break
+
+
+
+                elif direction == "verticale" or direction == 'v' or direction == '2':
+
+                    compte = 0
+                    l = str(pyip.inputStr(
+                        "Choissisez la coordonnée la plus haute (en haut à droite) pour placer votre bateau. \n"))
+                    l = l.upper()
+                    l = l.replace('', ',').split(",")
+                    if l[2] == '1' and l[3] == '0':
+                        coordonnée = (ord(l[1]) - 64, 10)
+                    elif len(l) == 4:
+                        coordonnée = (ord(l[1]) - 64, int(l[2]))
+                    else:
+                        None
+                    colonne = coordonnée[1]
+
+                    min_colonne = coordonnée[0]
+
+                    if min_colonne + len(Dic[bateau]) - 1 > 10:
+                        print("Ce placement est impossible")
+                        break
+
+                    for k in range(len(Dic[bateau])):
+
+                        if verif_coord(plateau, min_colonne + k, colonne):
+                            compte += 1
+
+                    if compte == len(Dic[bateau]):
+
+                        for k in range(len(Dic[bateau])):
+                            plateau[min_colonne + k - 1][colonne - 1] = Dic[bateau][0]
+
+                        L1.append(bateau)
+
+                    else:
+                        print("Ce placement est impossible")
+                        break
+
+                else:
+                    print("Cette direction n'existe pas")
+                    break
+
+                break
+
+        print("Tous vos bateaux ont été placés")
+        print_game_board(plateau)
+
+        return plateau
+
+    else:
+
+        L = [k for k in Dic.keys()]
+
+        while L != []:
+
+            while True:
+
+                bateau = random.choice(L)
+
+                # if bateau in L1:
+                # print("\n")
+                # print("Ce bateau a déjà été placé")
+                # break
+
+                direction = random.choice(['horizontale', 'verticale'])
+
+                if direction == "horizontale":
+
+                    compte = 0
+
+                    ligne, min_ligne = random.randint(1, 10), random.randint(1, 10 - len(Dic[bateau]) + 1)
+
+                    for k in range(len(Dic[bateau])):
+
+                        if verif_coord(plateau, ligne, min_ligne + k):
+                            compte += 1
+
+                    if compte == len(Dic[bateau]):
+
+                        for k in range(len(Dic[bateau])):
+                            plateau[ligne - 1][min_ligne + k - 1] = Dic[bateau][0]
+
+                        L.remove(bateau)
+
+                    else:
+                        break
+
+
+
+                elif direction == "verticale":
+
+                    compte = 0
+
+                    colonne, min_colonne = random.randint(1, 10), random.randint(1, 10 - len(Dic[bateau]) + 1)
+
+                    for k in range(len(Dic[bateau])):
+
+                        if verif_coord(plateau, min_colonne + k, colonne):
+                            compte += 1
+
+                    if compte == len(Dic[bateau]):
+
+                        for k in range(len(Dic[bateau])):
+                            plateau[min_colonne + k - 1][colonne - 1] = Dic[bateau][0]
+
+                        L.remove(bateau)
+
+                    else:
+                        break
+
+                break
+
+        return plateau
+
+
+# fonction mise a jour plateau
+
+
+def update_plat(player, i, j, booleen):  # Cette fonction va mettre a jour les plateaux publics tir joueurs 1 et 2
+    global tour
+    global player1_plat
+    global player1_tir
+    global player2_tir
+    global player2_plat
+
+    if tour % 2 == 1:
+        if booleen:
+            if player2_plat[i][j] != '..':
+                player[i][j] = 'X '
+
+    else:
+        if booleen:
+            if player1_plat[i][j] != '..':
+                player[i][j] = 'X '
+    return player
+
+
+def type_bateau(i, j, player):
+    if player[i][j] == 'PA':
+        return 'PA'
+    elif player[i][j] == 'C':
+        return 'C'
+    elif player[i][j] == 'CT':
+        return 'CT'
+    elif player[i][j] == 'SM':
+        return 'SM'
+    elif player[i][j] == 'T':
+        return 'T'
+
+
+def tirer(grille_bat, grille_tir):
+    """Mat -> Bool
+    demande au joueur son tir vérifie la validité mets à jour la grille puis retourne un booléen"""
+    global a
+    global tour
+    global joueur
+    global lis1
+    global lis
+    # alphabet = "ABCDEFGHIJ"
+    # if len(a) == 3:
+    #    c = 9
+    # else:
+    #    c = a[1]
+    # l = ord(coordonee[0]) - 65
+
+    # Mise à jour de la grille avec le résultat du tir (touché ou pas)
+    if grille_bat[a[0]][a[1]] == '..':
+        # print("Dans l'eau !")
+        grille_tir[a[0]][a[1]] = 'O '
+        return False
+    elif grille_bat[a[0]][a[1]] != '..':
+        # print("Touché !")
+        grille_tir[a[0]][a[1]] = 'X '
+        return True
+
+
+def couler(matrice):
+    '''Mat --> int
+    Affiche tous les bateaux coulés et en retourne le nombre '''
+    PA = 0
+    C = 0
+    CT = 0
+    SM = 0
+    T = 0
+    res = 0
+    for i in range(len(matrice)):
+        for j in range(len(matrice)):
+            if matrice[i][j] in b:
+                for k in b:
+                    if matrice[i][j] == k:
+                        if k == 'PA':
+                            PA += 1
+                        elif k == 'C ':
+                            C += 1
+                        elif k == 'CT':
+                            CT += 1
+                        elif k == 'SM':
+                            SM += 1
+                        elif k == 'T ':
+                            T += 1
+    if PA == 0:
+        print('Le Porte-Avion est coulé')
+        res += 1
+    if C == 0:
+        print('Le Croiseur est coulé')
+        res += 1
+    if CT == 0:
+        print('Le Contre-Torpilleur est coulé')
+        res += 1
+    if SM == 0:
+        print('Le Sous-Marin est coulé')
+        res += 1
+    if T == 0:
+        print('Le Torpilleur est coulé')
+        res += 1
+    return res
+
+
+###################################################
+tour = 0  # augmenter la variable de 1 à chaque fois qu'un joueur tire (0 au début de la partie)
+
+
+def lscore(matrice):
+    PA = 0
+    C = 0
+    CT = 0
+    SM = 0
+    T = 0
+    summ = 0
+    for i in range(len(matrice)):
+        for j in range(len(matrice)):
+            if matrice[i][j] in b:
+                for k in b:
+                    if matrice[i][j] == k:
+                        if k == 'PA':
+                            PA += 1
+                        elif k == 'C ':
+                            C += 1
+                        elif k == 'CT':
+                            CT += 1
+                        elif k == 'SM':
+                            SM += 1
+                        elif k == 'T ':
+                            T += 1
+    summ = 17 - PA - C - CT - SM - T
+    return summ
+
+
+def nettoyage_terminal():
+    '''None --> None
+    Nettoie le terminal'''
+    # print("Nettoyage de l'écran en cours...")
+    global joueur
+    global mode_de_jeu
+    if mode_de_jeu == 'joueur vs joueur':
+        sleep(3)
+    elif mode_de_jeu == 'IA vs joueur':
+        sleep(1)
+    else:
+        sleep(0)
+    print("\033c\033[3J")
+
+
+global tourc
+tourc = 0
+import csv
+
+
+def enregistrement_donnees(scorej1, scorej2):
+    """Enregistre les données de la partie dans un fichier CSV."""
+
+    global hauteur
+    global largeur
+    global j1
+    global j2
+    global player1_plat, player2_plat
+    global tour
+    global mode_de_jeu
+    global tourc
+
+    tourc = tourc + tour
+
+    if mode_de_jeu == 'joueur vs joueur':
+        Joueur1 = 'joueur'
+        Joueur2 = 'joueur'
+    elif mode_de_jeu == 'IA vs joueur':
+        Joueur1 = 'joueur'
+        Joueur2 = 'IA'
+    elif mode_de_jeu == 'IA vs IA':
+        Joueur1 = 'IA 1'
+        Joueur2 = 'IA 2'
+    elif mode_de_jeu == 'IA vs IA+':
+        Joueur1 = 'IA '
+        Joueur2 = 'IA +'
+    elif mode_de_jeu == 'IA+ vs IA':
+        Joueur1 = 'IA ++'
+        Joueur2 = 'IA '
+    else:
+        Joueur1 = 'IA +'
+        Joueur2 = 'IA +'
+
+    with open('iaVSia.csv', 'a', newline='') as csvfile:
+        fieldnames = ['Tour actuels', 'Tours accumulés', 'ScoreJ1', 'Partie gagnés j1', 'ScoreJ2', 'Parties gagnés j1']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=' ', quotechar='|', quoting=csv.QUOTE_ALL)
+
+        # Write header row if file is empty
+        if csvfile.tell() == 0:
+            writer.writeheader()
+
+        # Write data to columns by variable name
+        writer.writerow({
+            'Tour actuels': tour,
+            'Tours accumulés': tourc,
+            'ScoreJ1': lscore(player2_plat),
+            'Partie gagnés j1': j1,
+            'ScoreJ2': lscore(player1_plat),
+            'Parties gagnés j1': j2
+        })
+
+
+def coo(coordonee):
+    '''Str --> Tuple
+    Transforme les coordonnées en un tuple d'entiers'''
+    if len(coordonee) == 3 and (coordonee[1] == '1' and coordonee[2] == '0'):
+        c = 9
+    elif len(coordonee) == 3 and (coordonee[1] == 1 and coordonee[2] == 0):
+        c = 9
+    elif len(coordonee) == 2:
+        c = int(coordonee[1]) - 1
+    l = ord(coordonee[0]) - 65
+    return (l, c)
+
+
+def inverse_coo(coord):
+    '''Tuple --> Str
+    Transforme un tuple d'entiers en une chaîne de caractères représentant les coordonnées'''
+    l = chr(coord[0] + 65)
+    c = str(coord[1] + 1)
+    if c == '10':
+        c = '1' + c[1]
+    return l + c
+
+
+def recurse_random(L1, L2):
+    '''list*list --> tuple
+    prend en entrée deux listes L1 et L2 et renvoie un élément random de L1 qui ne se trouve pas dans L2'''
+    t = random.choice(L1)
+    if t in L2:
+        L1.remove(t)
+        return recurse_random(L1, L2)
+    else:
+        return t
+
+
+global j1, j2
+j1 = 0
+j2 = 0
+
+
+def fin_de_partie(score1: int, score2: int):
+    """Int x Int x Str x Int x Int--> None
+    Quitte la partie et affiche le gagnant"""
+    global mode_de_jeu
+    global t1
+
+    if mode_de_jeu == 'joueur vs joueur':
+        Joueur1 = 'joueur'
+        Joueur2 = 'joueur'
+    elif mode_de_jeu == 'IA vs joueur':
+        Joueur1 = 'IA'
+        Joueur2 = 'Joueur'
+    elif mode_de_jeu == 'IA vs IA':
+        Joueur1 = 'IA 1'
+        Joueur2 = 'IA 2'
+    elif mode_de_jeu == 'IA vs IA+':
+        Joueur1 = 'IA '
+        Joueur2 = 'IA +'
+    elif mode_de_jeu == 'IA+ vs IA':
+        Joueur1 = 'IA +'
+        Joueur2 = 'IA '
+    else:
+        Joueur1 = 'IA +'
+        Joueur2 = 'IA +'
+    global j1, j2
+    if score1 == 17:
+        print(Joueur1, '1 à gagner !')
+        sleep(0)
+        print('Fin de la partie')
+        enregistrement_donnees(score1, score2)
+        sleep(0)
+        os.system('cls||clear')
+        j1 = j1 + 1
+        return True
+
+
+    elif score2 == 17:
+        print(Joueur2, ' 2 à gagner !')
+        sleep(0)
+        print('Fin de la partie')
+        enregistrement_donnees(score1, score2)
+        sleep(0)
+        os.system('cls||clear')
+        j2 = j2 + 1
+        return True
+
+
+#############################################################
+global hauteur
+global largeur
+
+hauteur = False
+largeur = False
+
+
+def bataille_navale():
+    global joueur
+    global player1_plat
+    global player1_tir
+    global player2_tir
+    global player2_plat
+    global a
+    global mode_de_jeu
+    global scoreJ1, scoreJ2
+    global tour
+    global hitco
+    global lis
+    global lis1
+    global all_shots1
+    global all_shots2
+    global hitco2
+    hitco2 = []
+    hitco = []  # liste des tuples associées au coordonnée du bateau visé(on l'a déjà touché et on se concentre mtn dessus)
+    tour = 0  # variable pour compter le nombre de tours
+    scoreJ1 = 0
+    scoreJ2 = 0
+    lis = [str(x) + str(y) for x in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'] for y in
+           range(1, 11)]  # liste des possibilités de tir du j1
+    lis1 = [str(x) + str(y) for x in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'] for y in
+            range(1, 11)]  # liste des possibilités de tir du j2
+    player1_tir = [['..' for j in range(10)] for i in range(10)]  # les listes avec les tir des joueurs
+    player2_tir = [['..' for j in range(10)] for i in range(10)]  #
+    # demarrage = pyip.inputMenu(['Oui', 'Non'], "Voulez vous commencez à jouer à la Bataille Navale ? \n", numbered=True)
+    demarrage = 'Oui'
+    if demarrage == 'Oui':
+        règles = pyip.inputMenu(['Oui', 'Non'], "Voulez vous un rappel des règles ? \n", numbered=True)
+
+        if règles == 'Oui':
+            webbrowser.open('https://www.regles-de-jeux.com/regle-de-la-bataille-navale/')
+        print('Sélectionnez le mode de jeu auquel vous voulez jouer')
+        mode_de_jeu = pyip.inputMenu(["joueur vs joueur", "IA vs IA", "IA vs IA+(IA qui commence en premier)",
+                                      "IA+ vs IA(IA+ qui commence en premier)", "IA+ vs IA+",
+                                      "IA+ vs joueur(IA+ qui commence en premier)",
+                                      "joueur vs IA+(le joueur commence en premier)",
+                                      "IA vs joueur(IA+ qui commence en premier)",
+                                      "joueur vs IA(le joueur commence en premier)"], numbered=True)
+        mode_de_jeu = mode_de_jeu.split("(")[0]
+
+    if mode_de_jeu == "IA+ vs IA":
+        joueur = False
+        print("L'IA 1 place ses bateaux")
+        player1_plat = placement()
+        nettoyage_terminal()
+        print("L'IA 2 place ses bateaux")
+        player2_plat = placement()
+        nettoyage_terminal()
+        player1_tir = [['..' for j in range(10)] for i in range(10)]
+        player2_tir = [['..' for j in range(10)] for i in range(10)]
+        all_shots1 = []  # liste des tuples correspondant à tous les tirs déjà effectués de l'IA+
+        all_shots2 = []  # liste des tuples correspondant à tous les tirs déjà effectués de l'IA
+        sunken = [0, 0]  # liste dont le j-ème élément correspond au nombre de bateaux coulés au tour j
+        # pour le joueur 2 initialisé de la sorte pour le test plus bas
+        # nettoyage_terminal()
+        while True:
+            # print("Matrice des bateaux du joueur 1 : \n")
+            # print_game_board(player1_plat)
+            # print("Matrice des tirs du joueur 1 : \n")
+            # print_game_board(player1_tir)
+            # print('\n')
+            if sunken[len(sunken) - 2] < sunken[
+                len(sunken) - 1]:  # cela signifie que l'on vient de couler un bateau en plus on réinitialise donc la liste
+                hitco = []
+
+            if hitco == []:  # si l'on n'est pas concentré sur un bateau le tir est random
+                a = random.choice(lis)
+                va = a
+                lis.remove(va)
+                a = coo(a)
+            else:  # sinon on tire suivant un algorithme plus précis
+                a = next_shot(hitco, True)
+                va = inverse_coo(a)
+            if va in lis:
+                lis.remove(va)
+            all_shots1.append(a)  # on ajoute le tir effectué à la liste de tous les tirs
+            J1_tir = tirer(player2_plat, player1_tir)
+
+            if J1_tir:
+                # print("Bravo ! Vous avez touché un bateau.")
+                hitco.append(a)  # on a repéré un bateau
+            tour += 1
+            update_plat(player2_plat, a[0], a[1], J1_tir)
+            c = couler(player2_plat)  # on regarde le nombre de bateaux coulés à l'instant t
+            sunken.append(c)
+            # nettoyage_terminal()
+            if fin_de_partie(lscore(player2_plat), lscore(player1_plat)):
+                break
+            print("Fin du tour du joueur 1")
+            # nettoyage_terminal()
+            # print("Matrice des bateaux du joueur 2 : \n")
+            # print_game_board(player2_plat)
+            # print("Matrice des tirs du joueur 2 : \n")
+            # print_game_board(player2_tir)
+            # print('\n')
+            if fin_de_partie(lscore(player2_plat), lscore(player1_plat)):
+                break
+            a = random.choice(lis1)
+            vb = a
+            a = coo(a)
+            J2_tir = tirer(player1_plat, player2_tir)
+            if J2_tir:
+                print("Bravo ! Vous avez touché un bateau.")
+            all_shots2.append(a)
+            tour += 1
+
+            if vb in lis1:
+                lis1.remove(vb)
+            # couler(player1_plat)
+            update_plat(player1_plat, a[0], a[1], J2_tir)
+
+            nettoyage_terminal()
+            print("Fin du tour du joueur 2")
+            if fin_de_partie(lscore(player2_plat), lscore(player1_plat)):
+                break
+            # nettoyage_terminal()
+    elif mode_de_jeu == "joueur vs joueur":
+
+        joueur = True
+
+        print('Le joueur 1 place ses bateaux')
+        player1_plat = placement()
+        nettoyage_terminal()
+        print("Au tour du joueur 2 de placer ses bateaux")
+        player2_plat = placement()
+        nettoyage_terminal()
+        player1_tir = [['..' for j in range(10)] for i in range(10)]
+        player2_tir = [['..' for j in range(10)] for i in range(10)]
+        nettoyage_terminal()
+        while True:
+            print("Matrice des bateaux du joueur 1 : \n")
+            print_game_board(player1_plat)
+            print("Matrice des tirs du joueur 1 : \n")
+            print_game_board(player1_tir)
+            print('\n')
+            couler(player2_plat)
+
+            a = pyip.inputChoice(lis, "Où voulez vous tirer ? ")
+
+            va=a
+
+            if va in lis:
+                lis.remove(va)
+
+            a = coo(a)
+            J1_tir = tirer(player2_plat, player1_tir)
+            if J1_tir:
+                print("Bravo ! Vous avez touché un bateau.")
+            tour += 1
+
+
+            update_plat(player2_plat, a[0], a[1], J1_tir)
+
+            nettoyage_terminal()
+
+            print("Fin du tour du joueur 1")
+            if fin_de_partie(lscore(player2_plat), lscore(player1_plat)):
+                break
+            nettoyage_terminal()
+
+            print("Matrice des bateaux du joueur 2 : \n")
+            print_game_board(player2_plat)
+            print("Matrice des tirs du joueur 2 : \n")
+            print_game_board(player2_tir)
+            print('\n')
+            couler(player2_plat)
+
+            a = pyip.inputChoice(lis1, "Où voulez vous tirer ? ")
+
+            va = a
+
+            if va in lis1:
+                lis1.remove(va)
+
+            a = coo(a)
+            J2_tir = tirer(player1_plat, player2_tir)
+            if J2_tir:
+                print("Bravo ! Vous avez touché un bateau.")
+            tour += 1
+
+
+            update_plat(player1_plat, a[0], a[1], J2_tir)
+
+            nettoyage_terminal()
+
+            print("Fin du tour du joueur 2")
+            nettoyage_terminal()
+            if fin_de_partie(lscore(player2_plat), lscore(player1_plat)):
+                break
+
+    elif mode_de_jeu == "joueur vs IA":
+
+        joueur = True
+        print('Le joueur humain place ses bateaux')
+        player1_plat = placement()
+        nettoyage_terminal()
+
+        joueur = False
+        print("L'IA place ses bateaux")
+        player2_plat = placement()
+
+        nettoyage_terminal()
+        player1_tir = [['..' for j in range(10)] for i in range(10)]
+        player2_tir = [['..' for j in range(10)] for i in range(10)]
+        nettoyage_terminal()
+        joueur = True
+
+        while True:
+            joueur = True
+            print("Matrice des bateaux du joueur 1 : \n")
+            print_game_board(player1_plat)
+            print("Matrice des tirs du joueur 1 : \n")
+            print_game_board(player1_tir)
+            print('\n')
+            couler(player2_plat)
+
+            a = pyip.inputChoice(lis, "Où voulez vous tirer ? ")
+            va = a
+            a = coo(a)
+
+            J1_tir = tirer(player2_plat, player1_tir)
+
+            if J1_tir:
+                print("Bravo ! Vous avez touché un bateau.")
+            tour += 1
+
+            if va in lis:
+                lis.remove(va)
+            # a = coo(a)
+
+            update_plat(player2_plat, a[0], a[1], J1_tir)
+            nettoyage_terminal()
+            print("Fin du tour du joueur 1")
+            nettoyage_terminal()
+            if fin_de_partie(lscore(player2_plat), lscore(player1_plat)):
+                break
+            joueur = False
+
+            print("Matrice des bateaux du joueur 2 : \n")
+            print_game_board(player2_plat)
+            print("Matrice des tirs du joueur 2 : \n")
+            print_game_board(player2_tir)
+            print('\n')
+            a = random.choice(lis1)
+            va = a
+            a = coo(a)
+            J2_tir = tirer(player1_plat, player2_tir)
+            if J2_tir:
+                print("Bravo ! Vous avez touché un bateau.")
+            tour += 1
+            if va in lis1:
+                lis1.remove(va)
+            # a = coo(a)
+            couler(player1_plat)
+            update_plat(player1_plat, a[0], a[1], J2_tir)
+            nettoyage_terminal()
+
+            print("Fin du tour du joueur 2")
+            nettoyage_terminal()
+            if fin_de_partie(lscore(player2_plat), lscore(player1_plat)):
+                break
+
+    elif mode_de_jeu == "IA vs IA+":
+        joueur = False
+
+        # print("L'IA 1 place ses bateaux")
+        player1_plat = placement()
+        nettoyage_terminal()
+        # print("L'IA 2 place ses bateaux")
+        player2_plat = placement()
+
+        player1_tir = [['..' for j in range(10)] for i in range(10)]
+        player2_tir = [['..' for j in range(10)] for i in range(10)]
+        all_shots1 = []  # liste des tuples correspondant à tous les tirs déjà effectués de l'IA+
+        all_shots2 = []  # liste des tuples correspondant à tous les tirs déjà effectués de l'IA
+        sunken = [0, 0]  # liste dont le jème élément correspond au nombre de bateau coulés au tour j
+
+        while True:
+            # print("Matrice des bateaux du IA 1 : \n")
+            # print_game_board(player1_plat)
+            # print("Matrice des tirs du IA 1 : \n")
+            # print_game_board(player1_tir)
+            # print('\n')
+
+            a = random.choice(lis)
+            va = a
+            a = coo(a)
+
+            J1_tir = tirer(player2_plat, player1_tir)
+            touché = False
+            # if J1_tir:
+            # print("Bravo ! Vous avez touché un bateau.")
+
+            tour += 1
+
+            if va in lis:
+                lis.remove(va)
+            # couler(player2_plat)
+            update_plat(player2_plat, a[0], a[1], J1_tir)
+
+            # nettoyage_terminal()
+            if fin_de_partie(lscore(player2_plat), lscore(player1_plat)):
+                break
+
+            # print("Fin du tour de IA 1")
+            # nettoyage_terminal()
+            # print("Matrice des bateaux de IA 2 : \n")
+            # print_game_board(player2_plat)
+            # print("Matrice des tirs de IA 2 : \n")
+            # print_game_board(player2_tir)
+            # print('\n')
+
+            if sunken[len(sunken) - 2] < sunken[
+                len(sunken) - 1]:  # cela signifie que l'on vient de couler un bateau en plus on réinitialise donc la liste
+                hitco = []
+
+            if hitco == []:  # si l'on n'est pas concentré sur un bateau le tir est random
+                a = random.choice(lis1)
+                va = a
+                lis1.remove(va)
+                a = coo(a)
+
+
+
+            else:  # sinon on tire suivant un algorithme plus précis
+                a = next_shot(hitco, True)
+                va = inverse_coo(a)
+
+            if va in lis1:
+                lis1.remove(va)
+
+            all_shots1.append(a)  # on ajoute le tir effectué à la liste de tous les tirs
+
+            J2_tir = tirer(player1_plat, player2_tir)
+
+            if J2_tir:
+                # print("Bravo ! Vous avez touché un bateau.")
+                hitco.append(a)  # on a reperé un bateau
+
+            tour += 1
+
+            update_plat(player1_plat, a[0], a[1], J2_tir)
+
+            c = couler(player1_plat)  # on regarde le nombre de bateaux coulés à l'instant t
+            sunken.append(c)
+
+            print("Fin du tour du IA 2")
+
+            if fin_de_partie(lscore(player2_plat), lscore(player1_plat)):
+                break
+
+    if mode_de_jeu == "IA+ vs IA+":
+
+        joueur = False
+
+        print("L'IA 1 place ses bateaux")
+        player1_plat = placement()
+        nettoyage_terminal()
+        print("L'IA 2 place ses bateaux")
+        player2_plat = placement()
+        nettoyage_terminal()
+        player1_tir = [['..' for j in range(10)] for i in range(10)]
+        player2_tir = [['..' for j in range(10)] for i in range(10)]
+        all_shots1 = []  # liste des tuples correspondant à tous les tirs déjà effectués de l'IA+ 1
+        all_shots2 = []  # liste des tuples correspondant à tous les tirs déjà effectués de l'IA
+        sunken = [0, 0]  # liste dont le j-ème élément correspond au nombre de bateaux coulés au tour j de ia+1
+        sunken2 = [0, 0]  # liste dont le j-ème élément correspond au nombre de bateaux coulés au tour j de ia+2
+        # pour le joueur 2 initialisé de la sorte pour le test plus bas
+        nettoyage_terminal()
+        while True:
+            # print("Matrice des bateaux du joueur 1 : \n")
+            # print_game_board(player1_plat)
+            # print("Matrice des tirs du joueur 1 : \n")
+            # print_game_board(player1_tir)
+            # print('\n')
+
+            if sunken[len(sunken) - 2] < sunken[
+                len(sunken) - 1]:  # cela signifie que l'on vient de couler un bateau en plus on réinitialise donc la liste
+                hitco = []
+
+            if hitco == []:  # si l'on n'est pas concentré sur un bateau le tir est random
+                a = random.choice(lis)
+                va = a
+                lis.remove(va)
+                a = coo(a)
+
+
+
+            else:  # sinon on tire suivant un algorithme plus précis
+
+                a = next_shot(hitco, True)
+                va = inverse_coo(a)
+
+            if va in lis:
+                lis.remove(va)
+
+            all_shots1.append(a)  # on ajoute le tir effectué à la liste de tous les tirs
+
+            J1_tir = tirer(player2_plat, player1_tir)
+
+            if J1_tir:
+                # print("Bravo ! Vous avez touché un bateau.")
+                hitco.append(a)  # on a reperé un bateau
+
+            tour += 1
+
+            update_plat(player2_plat, a[0], a[1], J1_tir)
+
+            c = couler(player2_plat)  # on regarde le nombre de bateaux coulés à l'instant t
+            sunken.append(c)
+
+            nettoyage_terminal()
+            if fin_de_partie(lscore(player2_plat), lscore(player1_plat)):
+                break
+            # print("Fin du tour du joueur 1")
+            # nettoyage_terminal()
+            # print("Matrice des bateaux de IA 2 : \n")
+            # print_game_board(player2_plat)
+            # print("Matrice des tirs de IA 2 : \n")
+            # print_game_board(player2_tir)
+            # print('\n')
+
+            if sunken2[len(sunken2) - 2] < sunken2[
+                len(sunken2) - 1]:  # cela signifie que l'on vient de couler un bateau en plus on réinitialise donc la liste
+                hitco2 = []
+
+            if hitco2 == []:  # si l'on est pas concentré sur un bateau le tir est random
+                a = random.choice(lis1)
+                va = a
+                lis1.remove(va)
+                a = coo(a)
+
+
+
+            else:  # sinon on tire suivant un algorithme plus précis
+                a = next_shot(hitco2, False)
+                va = inverse_coo(a)
+
+            if va in lis1:
+                lis1.remove(va)
+
+            all_shots2.append(a)  # on ajoute le tir effectué à la liste de tous les tirs
+
+            J2_tir = tirer(player1_plat, player2_tir)
+
+            if J2_tir:
+                # print("Bravo ! Vous avez touché un bateau.")
+                hitco2.append(a)  # on a repéré un bateau
+
+            tour += 1
+
+            update_plat(player1_plat, a[0], a[1], J2_tir)
+
+            c = couler(player1_plat)  # on regarde le nombre de bateaux coulés à l'instant t
+            sunken2.append(c)
+
+            nettoyage_terminal()
+            if fin_de_partie(lscore(player2_plat), lscore(player1_plat)):
+                break
+            print("Fin du tour du IA 2")
+            nettoyage_terminal()
+
+    if mode_de_jeu == "IA+ vs joueur":
+
+        joueur = False
+
+        print("L'IA 1 place ses bateaux")
+        player1_plat = placement()
+        nettoyage_terminal()
+        joueur = True
+        print("Le joueur  place ses bateaux")
+        player2_plat = placement()
+        nettoyage_terminal()
+        player1_tir = [['..' for j in range(10)] for i in range(10)]
+        player2_tir = [['..' for j in range(10)] for i in range(10)]
+        all_shots1 = []  # liste des tuples correspondant à tous les tirs déjà effectués de l'IA+
+        sunken = [0, 0]  # liste dont le j-ème élément correspond au nombre de bateaux coulés au tour j
+        # pour le joueur 2 initialisé de la sorte pour le test plus bas
+
+        nettoyage_terminal()
+        while True:
+            joueur = False
+
+            print("Matrice des tirs du joueur 1 : \n")
+            print_game_board(player1_tir)
+            print('\n')
+
+            if sunken[len(sunken) - 2] < sunken[
+                len(sunken) - 1]:  # cela signifie que l'on vient de couler un bateau en plus on réinitialise donc la liste
+                hitco = []
+
+            if hitco == []:  # si l'on n'est pas concentré sur un bateau le tir est random
+                a = random.choice(lis)
+                va = a
+                lis.remove(va)
+                a = coo(a)
+
+
+
+            else:  # sinon on tire suivant un algorithme plus précis
+                a = next_shot(hitco, True)
+                va = inverse_coo(a)
+
+            if va in lis:
+                lis.remove(va)
+
+            all_shots1.append(a)  # on ajoute le tir effectué à la liste de tous les tirs
+
+            J1_tir = tirer(player2_plat, player1_tir)
+
+            if J1_tir:
+                # print("Bravo ! Vous avez touché un bateau.")
+                hitco.append(a)  # on a reperé un bateau
+
+            tour += 1
+
+            update_plat(player2_plat, a[0], a[1], J1_tir)
+
+            c = couler(player2_plat)  # on regarde le nombre de bateaux coulés à l'instant t
+            sunken.append(c)
+
+            nettoyage_terminal()
+            if fin_de_partie(lscore(player2_plat), lscore(player1_plat)):
+                break
+            print("Fin du tour du joueur 1")
+
+            joueur = True
+
+
+
+            print("Matrice des bateaux du joueur 2 : \n")
+            print_game_board(player2_plat)
+            print("Matrice des tirs du joueur 2 : \n")
+            print_game_board(player2_tir)
+            couler(player1_plat)
+            print('\n')
+            a = pyip.inputChoice(lis1, "Où voulez vous tirer ? ")
+            couler(player1_plat)
+
+            va=a
+
+            if va in lis1:
+                lis1.remove(va)
+
+            a = coo(a)
+            J2_tir = tirer(player1_plat, player2_tir)
+            if J2_tir:
+                print("Bravo ! Vous avez touché un bateau.")
+            tour += 1
+            # a = coo(a)
+
+            update_plat(player1_plat, a[0], a[1], J2_tir)
+
+            nettoyage_terminal()
+
+            print("Fin du tour du joeuur 2")
+            nettoyage_terminal()
+
+            if fin_de_partie(lscore(player2_plat), lscore(player1_plat)):
+                break
+
+    elif mode_de_jeu == "IA vs IA":
+
+        joueur = False
+
+        print("L'IA 1 place ses bateaux")
+        player1_plat = placement()
+        nettoyage_terminal()
+        print("L'IA 2 place ses bateaux")
+        player2_plat = placement()
+        nettoyage_terminal()
+        player1_tir = [['..' for j in range(10)] for i in range(10)]
+        player2_tir = [['..' for j in range(10)] for i in range(10)]
+        nettoyage_terminal()
+        while True:
+            # print("Matrice des bateaux du IA 1 : \n")
+            # print_game_board(player1_plat)
+            # print("Matrice des tirs du IA 1 : \n")
+            # print_game_board(player1_tir)
+            # print('\n')
+
+            a = random.choice(lis)
+            va = a
+            a = coo(a)
+
+            J1_tir = tirer(player2_plat, player1_tir)
+
+            # if J1_tir:
+            #     print("Bravo ! Vous avez touché un bateau.")
+
+            if va in lis:
+                lis.remove(va)
+
+            tour += 1
+
+            # couler(player2_plat)
+            update_plat(player2_plat, a[0], a[1], J1_tir)
+
+            nettoyage_terminal()
+            if fin_de_partie(lscore(player2_plat), lscore(player1_plat)):
+                break
+            # print("Fin du tour du IA 1")
+            # nettoyage_terminal()
+
+            # print("Matrice des bateaux du IA 2 : \n")
+            # print_game_board(player2_plat)
+            # print("Matrice des tirs du IA 2 : \n")
+            # print_game_board(player2_tir)
+            # print('\n')
+            if fin_de_partie(lscore(player2_plat), lscore(player1_plat)):
+                break
+            a = random.choice(lis1)
+            va = a
+            a = coo(a)
+
+            J2_tir = tirer(player1_plat, player2_tir)
+            # if J2_tir:
+            # print("Bravo ! Vous avez touché un bateau.")
+            tour += 1
+
+            if va in lis1:
+                lis1.remove(va)
+            # couler(player1_plat)
+            update_plat(player1_plat, a[0], a[1], J2_tir)
+
+            nettoyage_terminal()
+            # print("Fin du tour de IA 2")
+            if fin_de_partie(lscore(player2_plat), lscore(player1_plat)):
+                break
+            # nettoyage_terminal()
+
+    elif mode_de_jeu == "joueur vs IA+":
+
+        joueur = True
+
+        print('Le joueur 1 place ses bateaux')
+        player1_plat = placement()
+        nettoyage_terminal()
+        print("Au tour du joueur 2 de placer ses bateaux")
+        joueur = False
+        player2_plat = placement()
+        nettoyage_terminal()
+        player1_tir = [['..' for j in range(10)] for i in range(10)]
+        player2_tir = [['..' for j in range(10)] for i in range(10)]
+        sunken=[0,0]
+        all_shots=[]
+        nettoyage_terminal()
+        while True:
+            joueur = True
+            print("Matrice des bateaux du joueur 1 : \n")
+            print_game_board(player1_plat)
+            print("Matrice des tirs du joueur 1 : \n")
+            print_game_board(player1_tir)
+            print('\n')
+            couler(player2_plat)
+
+            a = pyip.inputChoice(lis, "Où voulez vous tirer ? ")
+            va = a
+            a = coo(a)
+            J1_tir = tirer(player2_plat, player1_tir)
+
+            if J1_tir:
+                print("Bravo ! Vous avez touché un bateau.")
+            tour += 1
+
+            if va in lis:
+                lis.remove(va)
+
+
+            update_plat(player2_plat, a[0], a[1], J1_tir)
+
+            nettoyage_terminal()
+
+            print("Fin du tour du joueur 1")
+            if fin_de_partie(lscore(player2_plat), lscore(player1_plat)):
+                break
+            nettoyage_terminal()
+            # print("Fin du tour du joueur 1")
+            # nettoyage_terminal()
+            # print("Matrice des bateaux du IA 2 : \n")
+            # print_game_board(player2_plat)
+            # print("Matrice des tirs du IA 2 : \n")
+            # print_game_board(player2_tir)
+            # print('\n')
+            joueur = False
+            if sunken[len(sunken) - 2] < sunken[
+                len(sunken) - 1]:  # cela signifie que l'on vient de couler un bateau en plus on réinitialise donc la liste
+                hitco2 = []
+
+            if hitco2 == []:  # si l'on est pas concentré sur un bateau le tir est random
+                a = random.choice(lis1)
+                va = a
+                lis1.remove(va)
+                a = coo(a)
+
+
+
+            else:  # sinon on tire suivant un algorithme plus précis
+                a = next_shot(hitco2, False)
+                va = inverse_coo(a)
+
+            if va in lis1:
+                lis1.remove(va)
+
+            all_shots.append(a)  # on ajoute le tir effectué à la liste de tous les tirs
+
+            J2_tir = tirer(player1_plat, player2_tir)
+
+            if J2_tir:
+                # print("Bravo ! Vous avez touché un bateau.")
+                hitco2.append(a)  # on a repéré un bateau
+
+            tour += 1
+
+            update_plat(player1_plat, a[0], a[1], J2_tir)
+
+            c = couler(player1_plat)  # on regarde le nombre de bateaux coulés à l'instant t
+            sunken.append(c)
+
+            nettoyage_terminal()
+            if fin_de_partie(lscore(player2_plat), lscore(player1_plat)):
+                break
+            print("Fin du tour du IA 2")
+            nettoyage_terminal()
+
+    elif mode_de_jeu == "IA vs joueur":
+
+        joueur = False
+
+        print("L'IA 1 place ses bateaux")
+        player1_plat = placement()
+        nettoyage_terminal()
+        print("le Joueur place ses bateaux")
+        joueur = True
+        player2_plat = placement()
+        nettoyage_terminal()
+        player1_tir = [['..' for j in range(10)] for i in range(10)]
+        player2_tir = [['..' for j in range(10)] for i in range(10)]
+        nettoyage_terminal()
+        while True:
+            joueur = False
+            print("Matrice des bateaux du IA 1 : \n")
+            print_game_board(player1_plat)
+            print("Matrice des tirs du IA 1 : \n")
+            print_game_board(player1_tir)
+            print('\n')
+
+            a = random.choice(lis)
+            va = a
+            a = coo(a)
+
+            J1_tir = tirer(player2_plat, player1_tir)
+
+            if J1_tir:
+                print("Bravo ! Vous avez touché un bateau.")
+
+            if va in lis:
+                lis.remove(va)
+
+            tour += 1
+
+            couler(player2_plat)
+            update_plat(player2_plat, a[0], a[1], J1_tir)
+
+            nettoyage_terminal()
+            if fin_de_partie(lscore(player2_plat), lscore(player1_plat)):
+                break
+            print("Fin du tour du IA 1")
+
+            joueur = True
+
+            if fin_de_partie(lscore(player2_plat), lscore(player1_plat)):
+                break
+            nettoyage_terminal()
+
+            print("Matrice des bateaux du joueur 2 : \n")
+            print_game_board(player2_plat)
+            print("Matrice des tirs du joueur 2 : \n")
+            print_game_board(player2_tir)
+            print('\n')
+            couler(player1_plat)
+
+            a = pyip.inputChoice(lis1, "Où voulez vous tirer ? ")
+            a = coo(a)
+            va =a
+
+            J2_tir = tirer(player1_plat, player2_tir)
+            if J2_tir:
+                print("Bravo ! Vous avez touché un bateau.")
+            tour += 1
+            # a = coo(a)
+
+            if va in lis1:
+                lis1.remove(va)
+
+            couler(player1_plat)
+            update_plat(player1_plat, a[0], a[1], J2_tir)
+
+            nettoyage_terminal()
+
+            print("Fin du tour du joeuur 2")
+            nettoyage_terminal()
+            if fin_de_partie(lscore(player2_plat), lscore(player1_plat)):
+                break
+
+
+def next_shot(hitco, boolean):
+    global all_shots2
+    global all_shots1
+    all_shots11 = []
+    if boolean:
+        all_shots11 = all_shots1
+    else:
+        all_shots11 = all_shots2
+    if len(hitco) == 1:  # si l'on repère pour la première fois un bateau on tire autour
+
+        x = hitco[0][0]
+        y = hitco[0][1]
+
+        if x not in (0, 9) and y not in (0, 9):
+            L = [(x, y - 1), (x, y + 1), (x - 1, y),
+                 (x + 1, y)]  # liste des 4 cases autour de celle de coordoonées (x,y)
+
+        # cas limites (bord du plateau)
+        elif (x, y) == (0, 0):
+            L = [(0, 1), (1, 0)]
+
+        elif (x, y) == (9, 0):
+            L = [(8, 0), (9, 1)]
+
+        elif (x, y) == (0, 9):
+            L = [(0, 8), (1, 9)]
+
+        elif (x, y) == (9, 9):
+            L = [(9, 8), (8, 9)]
+
+        # cas avec 3 cases autour
+
+        elif x == 0 and y not in (0, 9):
+            L = [(x, y - 1), (x, y + 1), (x + 1, y)]
+
+        elif x not in (0, 9) and y == 9:
+            L = [(x, y - 1), (x - 1, y), (x + 1, y)]
+
+        elif x == 9 and y not in (0, 9):
+            L = [(x, y - 1), (x, y + 1), (x - 1, y)]
+
+        elif x not in (0, 9) and y == 0:
+            L = [(x - 1, y), (x, y + 1), (x + 1, y)]
+
+        shot = recurse_random(L, all_shots11)
+
+        return shot
+
+    elif len(
+            hitco) > 1:  # si l'on a déjà deux coordonnées on connaît la direction du bateau et on peut réduire le champ des possibles
+
+        x1 = hitco[0][0]
+        y1 = hitco[0][1]
+
+        x2 = hitco[1][0]
+        y2 = hitco[1][1]
+
+        if x1 == x2:  # le bateau est à l'horizontale
+
+            y_min = min([hitco[x][1] for x in range(len(hitco))])  # on repère la colonne min dans les cases touchés
+
+            y_max = max([hitco[x][1] for x in range(len(hitco))])  # on repère la colonne max dans les cases touchés
+
+            if y_min == 0 and y_max != 9:
+                shot = (x1, y_max + 1)
+                return shot
+
+            elif y_min != 0 and y_max != 9:
+                L = [(x1, y_min - 1), (x1, y_max + 1)]
+                shot = recurse_random(L, all_shots11)
+                return shot
+
+            elif y_min != 0 and y_max == 9:
+                shot = (x1, y_min - 1)
+                return shot
+
+        elif y1 == y2:  # le bateau est à la verticale
+
+            x_min = min([hitco[x][0] for x in range(len(hitco))])
+
+            x_max = max([hitco[x][0] for x in range(len(hitco))])
+
+            if x_min == 0 and x_max != 9:
+                shot = (x_max + 1, y1)
+                return shot
+
+            elif x_min != 0 and x_max != 9:
+                L = [(x_min - 1, y1), (x_max + 1, y1)]
+                shot = recurse_random(L, all_shots11)
+                return shot
+
+            elif x_min != 0 and x_max == 9:
+                shot = (x_min - 1, y1)
+                return shot
+
+print(bataille_navale())
