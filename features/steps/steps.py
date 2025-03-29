@@ -1,7 +1,7 @@
 import time
 
 from behave import given, when, then
-from selenium import webdriver
+from selenium import webdrivergit
 from selenium.webdriver.common.by import By
 
 @given("I sign in as standard_user")
