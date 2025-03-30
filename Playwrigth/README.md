@@ -12,4 +12,15 @@ Installez Playwright en exécutant la commande suivante dans votre terminal :
 
 ```bash
 pip install playwright
+
+
+
+
+
+
+
+
+
+
+
 ![PLAY!](https://s5.ezgif.com/tmp/ezgif-53240ce4e73aa3.gif)
