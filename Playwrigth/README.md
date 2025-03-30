@@ -12,4 +12,4 @@ Installez Playwright en exécutant la commande suivante dans votre terminal :
 
 ```bash
 pip install playwright
-https://github.com/cristian772/QA-testing-autmation/blob/main/Playwrigth/pagscreenshot.png
+![image](https://github.com/user-attachments/assets/c1652af3-9506-4805-95c5-a36a14e956f0)
