@@ -1,6 +1,6 @@
-# Projet Playwright - Test du site Sauce Labs (Python)
+# Projet Playwright - Test du site Sauce Demo (Python)
 
-Ce projet utilise [Playwright pour Python](https://playwright.dev/python/) pour effectuer des tests automatiques sur le site [Sauce Labs](https://www.saucelabs.com/). Playwright est une bibliothèque qui permet d'automatiser les navigateurs web et de réaliser des tests fonctionnels en utilisant Python.
+Ce projet utilise [Playwright pour Python](https://playwright.dev/python/) pour effectuer des tests automatiques sur le site de démonstration de [Sauce Demo](https://www.saucedemo.com/). Playwright est une bibliothèque qui permet d'automatiser les navigateurs web et de réaliser des tests fonctionnels en utilisant Python.
 
 ## Prérequis
 
