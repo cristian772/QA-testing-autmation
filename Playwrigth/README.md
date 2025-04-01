@@ -1,4 +1,4 @@
-![Image]([https://github.com/cristian772/QA-testing-autmation/blob/main/Playwrigth/ezgif.com-animated-gif-maker%20(2).gif?raw=true)
+![Image](https://s6.gifyu.com/images/bMpkp.gif)
 # Projet Playwright - Test du site Sauce Demo (Python)
 
 Ce projet utilise [Playwright pour Python](https://playwright.dev/python/) pour effectuer des tests automatiques sur le site de démonstration de [Sauce Demo](https://www.saucedemo.com/). Playwright est une bibliothèque qui permet d'automatiser les navigateurs web et de réaliser des tests fonctionnels en utilisant Python.
