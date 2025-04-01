@@ -4,7 +4,7 @@
 
 I made this project just for fun, it allows to see my my project in test automation that i use to train my skills with .
 
-Skills: Python/ Gherkin (Cocumber) / Selenium / HTML(basiscs) / CSS(basics)/Locust
+Skills: Python/ Gherkin (Cocumber) / Selenium / Playwright /HTML(basiscs) / CSS(basics)/Locust
 
 - 🔭 I’m currently working on this page. 
 - 🌱 I’m currently learning Postman,Playwright and Java 
