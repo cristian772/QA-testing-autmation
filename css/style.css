@@ -99,6 +99,7 @@ a, a:hover {
   letter-spacing: .1rem;
   text-transform: uppercase;
   font-weight: 900;
+  background-color: #0077B5 !important; /* Bleu LinkedIn */
 }
 
 .btn:active, .btn:focus {
@@ -108,7 +109,7 @@ a, a:hover {
 }
 
 .btn.btn-outline-pill.btn-custom-light {
-  color: #fff;
+  color: #ffff;
   border: 2px solid rgba(255, 255, 255, 0.5);
   -webkit-transition: .3s all ease;
   -o-transition: .3s all ease;
@@ -2014,6 +2015,7 @@ span.error {
   height: 100%;
   border-left: 1px solid #222;
   border-right: 1px solid #222;
+
 }
 
 .gsap-reveal {
@@ -2053,7 +2055,7 @@ span.error {
   left: 0;
   width: 100%;
   height: 100%;
-  background: #d63447;
+  background-color: #D3D3D3
   margin-left: -100%;
   z-index: 2;
 }
@@ -2065,6 +2067,7 @@ span.error {
   -webkit-transform: translateX(-100%);
   -ms-transform: translateX(-100%);
   transform: translateX(-100%);
+
 }
 
 .gsap-reveal-img {
@@ -2082,7 +2085,7 @@ span.error {
   left: 0;
   width: 100%;
   height: 100%;
-  background: #d63447;
+  background-color: #D3D3D3
   margin-left: -100%;
   z-index: 9;
 }
@@ -2104,4 +2107,20 @@ span.error {
     height: 200px; /* Augmente la hauteur pour mieux uniformiser les proportions */
     object-fit: cover; /* S'assure que les images remplissent bien l'espace tout en conservant un bon rendu */
     display: block; /* Évite les espaces indésirables sous les images */
+}
+.lazyload::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(128, 128, 128, 0.5); /* Gris semi-transparent */
+}
+.text-center {
+  text-align: center;
+}
+
+.mt-4 {
+  margin-top: 20px;
 }
