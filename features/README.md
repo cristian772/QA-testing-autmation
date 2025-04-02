@@ -54,4 +54,4 @@ Des captures d'écran sont générées à différentes étapes du test et enregi
 
 🚀 Bon test !
 
-
+![Image](https://github.com/cristian772/QA-testing-autmation/blob/main/features/checkout.png?raw=true=)
