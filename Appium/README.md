@@ -40,7 +40,7 @@ appium
 
 ### 3️⃣ Exécuter les tests :
 ```sh
-python test_script.py
+python AppiumDemoLabs.py
 ```
 
 ---
