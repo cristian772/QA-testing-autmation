@@ -1,4 +1,4 @@
-# 🐍 ![Behave Logo](https://upload.wikimedia.org/wikipedia/commons/9/94/Behave_logo.svg) Automatisation de Tests avec Behave
+# 🐍  Automatisation de Tests avec Behave
 
 Ce projet contient des tests automatisés pour le site *SauceDemo* en utilisant **Behave** et **Selenium**. Il simule un parcours utilisateur sur le site e-commerce pour ajouter des produits au panier et finaliser une commande.
 
