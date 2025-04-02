@@ -11,10 +11,10 @@
 ### Ce portfolio regroupe plusieurs projets d’automatisation de tests que j’ai réalisés pour m’entraîner et améliorer mes compétences.
 ### J’utilise divers frameworks et outils appliqués à des cas réels.
 
-🛠 Compétences & Technologies
+💻 Compétences & Technologies
 Langage de programmation : Python
 
-Automatisation des tests : Selenium, Playwright, Gherkin (Cucumber)
+Automatisation des tests : Selenium, Playwright, Appium, Behave (Gherkin/Cucumber)
 
 Technologies Web (Bases) : HTML, CSS
 ## 📂 Projets inclus
