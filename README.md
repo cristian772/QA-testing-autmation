@@ -34,5 +34,5 @@ Utilisation de Behave pour automatiser les tests à l'aide de scénarios écrits
 
 ---
 
-Feel free to explore each project through the provided links to see the full code and learn more about la manière dont ils ont été mis en œuvre. 🚀
+
 
