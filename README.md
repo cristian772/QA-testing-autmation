@@ -20,8 +20,8 @@ Technologies Web (Bases) : HTML, CSS
 ## 📂 Projets inclus
 
 🔹 **Test Sur des Applications Mobiles**  
-&nbsp;&nbsp;&nbsp;&nbsp;→ Test sur des Applications Android  avec Appium.  
-    [Appium](https://github.com/cristian772/QA-testing-autmation/tree/main/Appium)
+Test sur des Applications Android  avec Appium.  
+&nbsp;&nbsp;&nbsp;&nbsp;→ [Appium](https://github.com/cristian772/QA-testing-autmation/tree/main/Appium)
 
 🔹 **Tests d’API avec Postman**  
 &nbsp;&nbsp;&nbsp;&nbsp;→ Validation des endpoints  avec  Python.   
