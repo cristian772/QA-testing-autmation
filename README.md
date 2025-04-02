@@ -22,12 +22,14 @@ Technologies Web (Bases) : HTML, CSS
 🔹 **Test Sur des Applications Mobiles**  
 &nbsp;&nbsp;&nbsp;&nbsp;→Test sur des Applications Android  avec  [Appium](https://github.com/cristian772/QA-testing-autmation/tree/main/Appium)
 
+🔹**Devloppement d'un jeux en Python**  
+&nbsp;&nbsp;&nbsp;&nbsp;→ Dévloppement du jeux bataille navale en python avec 2 types d'ia [Bataille Navale](https://github.com/cristian772/QA-testing-autmation/tree/main/Games)
 
-🔹 **Tests d’API avec Postman**  
-&nbsp;&nbsp;&nbsp;&nbsp;→ Validation des endpoints  avec  Python.   
+🔹 **Automatisation des Test sur un site Ecommerce**  
+&nbsp;&nbsp;&nbsp;&nbsp;→ Automatisation des test sur un site ecommerce avec [Playwrigth](https://github.com/cristian772/QA-testing-autmation/tree/main/Playwrigth)
 
-🔹 **Intégration CI/CD**  
-&nbsp;&nbsp;&nbsp;&nbsp;→ Exécution des tests automatisés avec GitHub Actions.  
+🔹 **Automatisation de Tests avec Behave**  
+&nbsp;&nbsp;&nbsp;&nbsp;→ Automatisation de tests avec Behave pour valider le bon fonctionnement des applications via des scénarios en langage naturel [Behave](https://github.com/cristian772/QA-testing-autmation/tree/main/features)
 🚧 En cours d’apprentissage
 🌱 Postman, Playwright, Java
 
