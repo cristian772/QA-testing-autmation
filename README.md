@@ -7,9 +7,9 @@
 
 
 
-# # # 📌 À propos de ce projet
-# # # Ce portfolio regroupe plusieurs projets d’automatisation de tests que j’ai réalisés pour m’entraîner et améliorer mes compétences.
-# # # J’utilise divers frameworks et outils appliqués à des cas réels.
+### 📌 À propos de ce projet
+### Ce portfolio regroupe plusieurs projets d’automatisation de tests que j’ai réalisés pour m’entraîner et améliorer mes compétences.
+### J’utilise divers frameworks et outils appliqués à des cas réels.
 
 🛠 Compétences & Technologies
 Langage de programmation : Python
@@ -22,7 +22,7 @@ Tests de performance : Locust
 
 Technologies Web (Bases) : HTML, CSS
 
-# # # # 📂 Projets inclus
+#### 📂 Projets inclus
 🔹 Automatisation d’un site e-commerce – Tests UI pour la connexion, le panier et le paiement.
 🔹 Tests d’API avec Postman – Validation des endpoints d’une API avec Postman et Python.
 🔹 Tests de performance avec Locust – Simulation de charge sur une application web.
