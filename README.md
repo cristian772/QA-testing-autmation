@@ -25,8 +25,8 @@ Technologies Web (Bases) : HTML, CSS
 🔹**Devloppement d'un jeux en Python**  
 &nbsp;&nbsp;&nbsp;&nbsp;→ Dévloppement du jeux bataille navale en python avec 2 types d'ia [Bataille Navale](https://github.com/cristian772/QA-testing-autmation/tree/main/Games)
 
-🔹 **Automatisation des Test sur un site Ecommerce**  
-&nbsp;&nbsp;&nbsp;&nbsp;→ Automatisation des test sur un site ecommerce avec [Playwrigth](https://github.com/cristian772/QA-testing-autmation/tree/main/Playwrigth)
+🔹 **Automatisation des Test sur un site E-commerce**  
+&nbsp;&nbsp;&nbsp;&nbsp;→ Automatisation des test sur un site e-commerce avec [Playwrigth](https://github.com/cristian772/QA-testing-autmation/tree/main/Playwrigth)
 
 🔹 **Automatisation de Tests avec Behave**
 &nbsp;&nbsp;&nbsp;&nbsp;→ Automatisation de tests avec Behave et applications via des scénarios en langage [Naturel](https://github.com/cristian772/QA-testing-autmation/tree/main/features)   
