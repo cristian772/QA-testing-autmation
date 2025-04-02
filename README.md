@@ -16,11 +16,8 @@ Langage de programmation : Python
 
 Automatisation des tests : Selenium, Playwright, Gherkin (Cucumber)
 
-Tests d’API : Postman
-
-Tests de performance : Locust
-
 Technologies Web (Bases) : HTML, CSS
+## 📂 Projets inclus
 
 🔹 **Automatisation d’un site e-commerce**  
 &nbsp;&nbsp;&nbsp;&nbsp;→ Tests UI pour la connexion, le panier et le paiement.  
