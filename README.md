@@ -29,7 +29,7 @@ Technologies Web (Bases) : HTML, CSS
 &nbsp;&nbsp;&nbsp;&nbsp;→ Automatisation des test sur un site ecommerce avec [Playwrigth](https://github.com/cristian772/QA-testing-autmation/tree/main/Playwrigth)
 
 🔹 **Automatisation de Tests avec Behave**
-&nbsp;&nbsp;&nbsp;&nbsp;→ Automatisation de tests avec Behave et applications via des scénarios en langage naturel[Behave](https://github.com/cristian772/QA-testing-autmation/tree/main/features)   
+&nbsp;&nbsp;&nbsp;&nbsp;→ Automatisation de tests avec Behave et applications via des scénarios en langage [Naturel](https://github.com/cristian772/QA-testing-autmation/tree/main/features)   
 
 
 
