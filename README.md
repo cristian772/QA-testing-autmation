@@ -31,8 +31,7 @@ Technologies Web (Bases) : HTML, CSS
 🔹 **Automatisation de Tests avec Behave**
 &nbsp;&nbsp;&nbsp;&nbsp;→ Automatisation de tests avec Behave pour valider le bon fonctionnement des applications via des scénarios en langage naturel [Behave](https://github.com/cristian772/QA-testing-autmation/tree/main/features)
 
-🚧 En cours d’apprentissage
-🌱 Postman, Playwright, Java
+
 
 
 
