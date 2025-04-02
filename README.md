@@ -19,8 +19,9 @@ Automatisation des tests : Selenium, Playwright, Gherkin (Cucumber)
 Technologies Web (Bases) : HTML, CSS
 ## 📂 Projets inclus
 
-🔹 **Automatisation d’un site e-commerce**  
-&nbsp;&nbsp;&nbsp;&nbsp;→ Tests UI pour la connexion, le panier et le paiement.  
+🔹 **Test Sur des Applications Mobiles**  
+&nbsp;&nbsp;&nbsp;&nbsp;→ Test sur des Applications Android  avec Appium.  
+    [Appium](https://github.com/cristian772/QA-testing-autmation/tree/main/Appium)
 
 🔹 **Tests d’API avec Postman**  
 &nbsp;&nbsp;&nbsp;&nbsp;→ Validation des endpoints  avec  Python.   
