@@ -22,12 +22,14 @@ Tests de performance : Locust
 
 Technologies Web (Bases) : HTML, CSS
 
-#### 📂 Projets inclus
-🔹 Automatisation d’un site e-commerce – Tests UI pour la connexion, le panier et le paiement.
-🔹 Tests d’API avec Postman – Validation des endpoints d’une API avec Postman et Python.
-🔹 Tests de performance avec Locust – Simulation de charge sur une application web.
-🔹 Intégration CI/CD – Exécution des tests automatisés avec GitHub Actions.
+🔹 **Automatisation d’un site e-commerce**  
+&nbsp;&nbsp;&nbsp;&nbsp;→ Tests UI pour la connexion, le panier et le paiement.  
 
+🔹 **Tests d’API avec Postman**  
+&nbsp;&nbsp;&nbsp;&nbsp;→ Validation des endpoints  avec  Python.   
+
+🔹 **Intégration CI/CD**  
+&nbsp;&nbsp;&nbsp;&nbsp;→ Exécution des tests automatisés avec GitHub Actions.  
 🚧 En cours d’apprentissage
 🌱 Postman, Playwright, Java
 
