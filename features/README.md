@@ -1,58 +1,60 @@
-# 🐍  Automatisation de Tests avec Behave
+# 🥒 Test Automation with Behave
 
-Ce projet contient des tests automatisés pour le site *SauceDemo* en utilisant **Behave** et **Selenium**. Il simule un parcours utilisateur sur le site e-commerce pour ajouter des produits au panier et finaliser une commande.
-
----
-
-## 📌 Contenu des Tests
-
-🔹 **Connexion en tant qu'utilisateur standard**  
-🔹 **Ajout d'un sac à dos au panier**  
-🔹 **Vérification du panier**  
-🔹 **Ajout de tous les produits au panier**  
-🔹 **Accès au panier et passage à la caisse**  
-🔹 **Saisie des informations de livraison**  
-🔹 **Validation de la commande**  
-🔹 **Affichage du message de confirmation**  
+This project contains automated tests for the *SauceDemo* website using **Behave** and **Selenium**.  
+It simulates a user journey on the e-commerce site to add products to the cart and complete a purchase.
 
 ---
 
-## 🛠 Prérequis
+## 📌 Test Coverage
 
-Avant d'exécuter ces tests, assurez-vous d'avoir :
+🔹 **Login as a standard user**  
+🔹 **Add a backpack to the cart**  
+🔹 **Check the cart contents**  
+🔹 **Add all products to the cart**  
+🔹 **Proceed to checkout**  
+🔹 **Enter shipping information**  
+🔹 **Confirm the order**  
+🔹 **Display the confirmation message**
 
-✅ **Google Chrome** installé  
-✅ **Chromedriver** correspondant à votre version de Chrome  
-✅ **Python 3** installé  
-✅ **Behave et Selenium** installés  
+---
+
+## 🛠 Prerequisites
+
+Before running these tests, make sure you have:
+
+✅ **Google Chrome** installed  
+✅ **Chromedriver** matching your Chrome version  
+✅ **Python 3** installed  
+✅ **Behave and Selenium** installed
 
 ---
 
 ## 🚀 Installation
 
-### 1️⃣ Installer les dépendances nécessaires :
+### 1️⃣ Install the required dependencies:
 ```sh
 pip install behave selenium
 ```
 
-### 2️⃣ Exécuter les tests :
+### 2️⃣ Run the tests:
 ```sh
 behave
 ```
 
 ---
 
-## 🎥 Démonstration
+## 🎥 Demo
 
-Des captures d'écran sont générées à différentes étapes du test et enregistrées dans le dossier **features/**.
+Screenshots are generated at different stages of the test and saved in the **features/** directory.
 
 ---
 
-## ✍️ Auteur
+## ✍️ Author
 
 👤 **Cristian**
 
-🚀 Bon test !
+🚀 Happy testing!
 
-![Image](https://github.com/cristian772/QA-testing-autmation/blob/main/features/checkout.png?raw=true=)
+![Image](https://github.com/cristian772/QA-testing-autmation/blob/main/features/checkout.png?raw=true)  
 ![Image](https://github.com/cristian772/QA-testing-autmation/blob/main/features/Thank%20you%20for%20your.png?raw=true)
+
