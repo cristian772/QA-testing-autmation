@@ -1,38 +1,38 @@
-# Bataille Navale en Python
+# Battleship Game in Python
 
 ## Description
-Ce projet est une implémentation du jeu de la Bataille Navale en Python. Il permet aux joueurs de placer leurs bateaux sur une grille, de tirer sur les positions adverses et d'enregistrer les scores des parties.
+This project is a Python implementation of the classic Battleship game.  
+It allows players to place ships on a grid, fire at enemy positions, and record game scores.
 
-## Fonctionnalités
-- Placement des bateaux sur une grille 10x10.
-- Vérification de la validité des coordonnées.
-- Gestion des tirs et mise à jour du plateau.
-- Affichage du plateau après chaque tour.
-- Calcul et enregistrement des scores.
+## Features
+- Ship placement on a 10x10 grid  
+- Validation of input coordinates  
+- Turn-based shooting and board updates  
+- Display of the board after each turn  
+- Score calculation and saving
 
 ## Installation
-1. Assurez-vous d'avoir Python installé sur votre machine (version 3.x recommandée).
-2. Clonez ce dépôt ou téléchargez les fichiers du projet.
-3. Installez les dépendances requises avec la commande :
+1. Make sure Python is installed on your system (version 3.x recommended).  
+2. Clone this repository or download the project files.  
+3. Install the required dependencies with:
    ```sh
    pip install pyinputplus
    ```
-4. Exécutez le script principal :
+4. Run the main script:
    ```sh
    python main.py
    ```
 
-## Utilisation
-1. Le programme vous demandera de placer vos bateaux sur la grille.
-2. Ensuite, vous pourrez tirer sur la grille adverse en entrant des coordonnées.
-3. Le jeu continue jusqu'à ce qu'un joueur ait coulé tous les bateaux adverses.
-4. Les scores seront enregistrés et affichés à la fin de la partie.
+## Usage
+1. The program will prompt you to place your ships on the grid.  
+2. You then take turns firing at the opponent’s grid by entering coordinates.  
+3. The game continues until one player sinks all of the opponent’s ships.  
+4. Scores are saved and displayed at the end of the game.
 
-## Améliorations futures
-- Ajouter une interface graphique.
-- Implémenter un mode multijoueur en ligne.
-- Ajouter une intelligence artificielle plus avancée.
+## Future Improvements
+- Add a graphical user interface  
+- Implement an online multiplayer mode  
+- Develop a more advanced AI opponent
 
-## Auteur
-Développé par Cristian ,Ruby,August et Asgard
-
+## Authors
+Developed by Cristian, Ruby, August, and Asgard
