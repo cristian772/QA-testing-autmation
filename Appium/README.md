@@ -1,63 +1,62 @@
-# 📱 Automatisation de Tests avec Appium
+# 📱 Test Automation with Appium
 
-Ce projet contient des tests automatisés pour une application Android en utilisant **Appium** et **unittest**. Il simule un parcours utilisateur sur l'application *My Demo App* de Sauce Labs.
-
----
-
-## 📌 Contenu des Tests
-
-🔹 **Ouverture de l'application**  
-🔹 **Ajout d'un produit au panier**  
-🔹 **Accès au panier et passage à la caisse**  
-🔹 **Connexion à un compte utilisateur**  
-🔹 **Saisie des informations de livraison**  
-🔹 **Saisie des informations de paiement**  
-🔹 **Validation de la commande**  
+This project includes automated tests for an Android application using **Appium** and **unittest**.  
+It simulates a user journey on Sauce Labs’ *My Demo App*.
 
 ---
 
-## 🛠 Prérequis
+## 📌 Test Coverage
 
-Avant d'exécuter ces tests, assurez-vous d'avoir :
+🔹 **Launching the app**  
+🔹 **Adding a product to the cart**  
+🔹 **Accessing the cart and proceeding to checkout**  
+🔹 **Logging in to a user account**  
+🔹 **Entering shipping information**  
+🔹 **Entering payment details**  
+🔹 **Confirming the order**  
 
-✅ Un environnement **Appium** configuré  
-✅ Un émulateur ou un appareil **Android** connecté  
-✅ **Appium Server** en cours d'exécution  
+---
+
+## 🛠 Prerequisites
+
+Before running these tests, make sure you have:
+
+✅ A configured **Appium** environment  
+✅ A connected **Android** emulator or device  
+✅ **Appium Server** running  
 
 ---
 
 ## 🚀 Installation
 
-### 1️⃣ Installer les dépendances nécessaires :
+### 1️⃣ Install the required dependencies:
 ```sh
 pip install appium-python-client selenium unittest
 ```
 
-### 2️⃣ Démarrer le serveur Appium :
+### 2️⃣ Start the Appium server:
 ```sh
 appium
 ```
 
-### 3️⃣ Exécuter les tests :
+### 3️⃣ Run the tests:
 ```sh
 python AppiumDemoLabs.py
 ```
 
 ---
 
-## 🎥 Démonstration
+## 🎥 Demo
 
-Deux fichiers **GIF** sont inclus dans ce projet pour illustrer le déroulement des tests.
+Two **GIF** files are included in this project to demonstrate the test execution.
+
+![Image](https://s6.gifyu.com/images/bMxJu.gif)  
+![Image](https://s6.gifyu.com/images/bMxJn.gif)
 
 ---
 
-## ✍️ Auteur
+## ✍️ Author
 
 👤 **Cristian**
 
-🚀 Bon test !
-
-
-
-![Image](https://s6.gifyu.com/images/bMxJu.gif)
-![Image](https://s6.gifyu.com/images/bMxJn.gif)
+🚀 Happy testing!
