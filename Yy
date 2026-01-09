@@ -1,1 +1,0 @@
-f_out.write(f'<iframe src="{recette}" width="100%" height="50%" style="border:1px solid #ccc;"></iframe>\n')
