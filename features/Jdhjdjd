@@ -1,0 +1,2 @@
+def vsco_inverse_code(nombre):
+    return str(int((1 / nombre) * 10**13))[-7:]
