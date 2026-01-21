@@ -1,0 +1,22 @@
+from decimal import Decimal, getcontext
+
+# Augmenter la précision pour ne rien perdre
+getcontext().prec = 50
+
+def vsco_code(nombre: str) -> str:
+    """
+    Reproduction exacte de la calculatrice VSCO bouton I.
+    """
+    n = Decimal(nombre)                # convertir en Decimal pour précision
+    inv = Decimal(1) / n               # bouton I
+    # multiplier pour décaler la virgule comme fait la VSCO
+    valeur = int(inv * Decimal(10**13))
+    # garder les 7 derniers chiffres et ajouter des zéros au début si nécessaire
+    return f"{valeur % 10**7:07d}"
+
+
+# Tests
+valeurs = ["0429733", "0429735", "0429752"]
+
+for v in valeurs:
+    print(v, "→", vsco_code(v))
