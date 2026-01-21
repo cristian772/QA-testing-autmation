@@ -1,0 +1,17 @@
+def vsco_code(nombre: int) -> str:
+    """
+    Reproduction exacte VSCO :
+    1 / x  → déplacement virgule → 7 derniers chiffres
+    """
+    return f"{int((1 / nombre) * 10**14) % 10**7:07d}"
+
+
+def main():
+    valeurs = [429733, 429735, 429752]
+
+    for v in valeurs:
+        print(f"{v} → {vsco_code(v)}")
+
+
+if __name__ == "__main__":
+    main()
