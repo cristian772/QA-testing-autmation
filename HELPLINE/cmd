@@ -1,0 +1,21 @@
+# ===== PARAMÈTRES =====
+$dossier = "C:\MonDossierHTML"     # dossier à scanner
+$nbFichiersRecents = 10             # nombre de fichiers récents
+$valeurRecherchee = "Adjoint True"
+$fichierSortie = "C:\resultats.txt"
+
+# ===== TRAITEMENT =====
+Get-ChildItem $dossier -Filter *.html |
+Sort-Object LastWriteTime -Descending |
+Select-Object -First $nbFichiersRecents |
+ForEach-Object {
+
+    $contenu = Get-Content $_.FullName -Raw
+
+    $trouve = $contenu -match $valeurRecherchee
+
+    # Nom du fichier jusqu'au "_"
+    $nomCourt = $_.BaseName.Split("_")[0]
+
+    "$nomCourt;$trouve"
+} | Out-File $fichierSortie -Encoding UTF8
