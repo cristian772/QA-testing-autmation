@@ -1,8 +1,11 @@
 # ===== PARAMÈTRES =====
-$dossier = "C:\MonDossierHTML"     # dossier à scanner
-$nbFichiersRecents = 10             # nombre de fichiers récents
+$dossier = "C:\MonDossierHTML"     # dossier contenant les HTML
+$nbFichiersRecents = 10             # nombre de fichiers récents à analyser
 $valeurRecherchee = "Adjoint True"
 $fichierSortie = "C:\resultats.txt"
+
+# Nettoie le fichier de sortie avant écriture
+Clear-Content -Path $fichierSortie -ErrorAction SilentlyContinue
 
 # ===== TRAITEMENT =====
 Get-ChildItem $dossier -Filter *.html |
@@ -11,11 +14,11 @@ Select-Object -First $nbFichiersRecents |
 ForEach-Object {
 
     $contenu = Get-Content $_.FullName -Raw
-
     $trouve = $contenu -match $valeurRecherchee
 
     # Nom du fichier jusqu'au "_"
     $nomCourt = $_.BaseName.Split("_")[0]
 
+    # Écrit UNE ligne par fichier
     "$nomCourt;$trouve"
-} | Out-File $fichierSortie -Encoding UTF8
+} | Out-File $fichierSortie -Encoding UTF8 -Append
