@@ -1,0 +1,36 @@
+import random
+import time
+
+Tours = ["A", "B", "C"]
+longeuretage = [1, 2, 3, 4]          # PAS random
+longeurpositions = [1, 2, 3, 4, 5, 6]
+longe = [2, 3]
+
+L = []
+
+# On mélange UNE SEULE FOIS ce qui doit l’être
+random.shuffle(Tours)
+random.shuffle(longeurpositions)
+
+for a in Tours:
+
+    if a == "C":
+        longeurpositio4 = longe[:]     # copie propre
+    else:
+        longeurpositio4 = longeurpositions[:]
+
+    random.shuffle(longeurpositio4)
+
+    for m in longeurpositio4:
+        for e in longeuretage:         # étage reste stable
+            for p in longeurpositions:
+                position = f"{a}{m}-{e}-{p}"
+
+                if position not in L:
+                    L.append(position)
+
+# Affichage
+for i in L:
+    print(i)
+
+time.sleep(1000)
