@@ -1,0 +1,33 @@
+import random
+import time
+
+Tours = ["A", "B", "C"]
+etages = [1, 2, 3, 4]
+positions = [1, 2, 3, 4, 5, 6]
+longe_C = [2, 3]
+
+resultats = []
+
+for tour in Tours:
+
+    if tour == "C":
+        longes = longe_C
+    else:
+        longes = positions  # 6 longueurs
+
+    for l in longes:
+        for e in etages:
+            for p in positions:
+                resultats.append(f"{tour}{l}-{e}-{p}")
+
+# Vérification
+print("TOTAL :", len(resultats))  # DOIT afficher 336
+
+# Random global
+random.shuffle(resultats)
+
+# Affichage
+for r in resultats:
+    print(r)
+
+time.sleep(1000)
