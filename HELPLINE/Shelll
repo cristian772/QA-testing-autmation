@@ -1,0 +1,33 @@
+# ===== PARAMÈTRES =====
+$dossier = "R:\Hybridation"          # dossier contenant les HTML
+$nbFichiersRecents = 2000            # nombre de fichiers récents à analyser
+$valeurRecherchee = "YES"
+$fichierSortie = Join-Path $PSScriptRoot "hybridation.csv"
+
+# Nettoie le fichier de sortie
+Clear-Content -Path $fichierSortie -ErrorAction SilentlyContinue
+
+# ===== TRAITEMENT =====
+$resultats = Get-ChildItem $dossier -Filter *.HTML -File |
+Sort-Object LastWriteTime -Descending |
+Select-Object -First $nbFichiersRecents |
+ForEach-Object {
+
+    $trouve = $false
+
+    # Lecture ligne par ligne → stop dès que trouvé
+    foreach ($ligne in Get-Content $_.FullName) {
+        if ($ligne.Contains($valeurRecherchee)) {
+            $trouve = $true
+            break
+        }
+    }
+
+    # Nom du fichier jusqu'au premier "-"
+    $nomCourt = $_.BaseName.Split("-")[0]
+
+    "$nomCourt;$trouve"
+}
+
+# Écriture finale (une seule fois → rapide)
+$resultats | Out-File $fichierSortie -Encoding UTF8
