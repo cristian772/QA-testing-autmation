@@ -1,0 +1,55 @@
+import csv
+from itertools import zip_longest
+
+input_file = "input.csv"
+output_file = "output_clean.csv"
+
+data = {}
+
+# Lecture du fichier et regroupement par Asset TAG
+with open(input_file, newline="", encoding="utf-8-sig") as f:
+    reader = csv.DictReader(f, delimiter=';')
+    for row in reader:
+        tag = row["Asset TAG"].strip()
+        mac = row["Adress MAC Passthrought"].strip()
+        lom = row["Adress LOM MAC"].strip()
+        guid = row["GUUID"].strip()
+
+        if tag not in data:
+            data[tag] = {
+                "mac": [],
+                "lom": [],
+                "guid": []
+            }
+
+        if mac and mac not in data[tag]["mac"]:
+            data[tag]["mac"].append(mac)
+        if lom and lom not in data[tag]["lom"]:
+            data[tag]["lom"].append(lom)
+        if guid and guid not in data[tag]["guid"]:
+            data[tag]["guid"].append(guid)
+
+# Écriture du fichier CSV nettoyé
+with open(output_file, "w", newline="", encoding="utf-8") as f:
+    writer = csv.writer(f, delimiter=';')
+    writer.writerow(["Asset TAG", "Adress MAC Passthrought", "Adress LOM MAC", "GUUID"])
+
+    for tag, values in data.items():
+        # Trouver la longueur maximale parmi les listes
+        max_len = max(len(values["mac"]), len(values["lom"]), len(values["guid"]))
+
+        # On aligne toutes les valeurs sur la même ligne, remplissant avec "" si nécessaire
+        macs = values["mac"] + [""] * (max_len - len(values["mac"]))
+        loms = values["lom"] + [""] * (max_len - len(values["lom"]))
+        guids = values["guid"] + [""] * (max_len - len(values["guid"]))
+
+        # Écriture des lignes
+        for i in range(max_len):
+            if i == 0:
+                writer.writerow([tag, macs[i], loms[i], guids[i]])
+            else:
+                # On laisse la colonne Asset TAG vide pour ne pas répéter
+                writer.writerow(["", macs[i], loms[i], guids[i]])
+
+print("Nettoyage terminé")
+print("Assets uniques :", len(data))
