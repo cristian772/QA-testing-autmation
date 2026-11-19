@@ -1,0 +1,1182 @@
+
+import csv
+import threading
+import queue
+import time
+from datetime import datetime
+from pathlib import Path
+import tkinter as tk
+from tkinter import ttk, filedialog, messagebox
+
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+from openpyxl import Workbook, load_workbook
+
+
+# ==========================================================
+# DELL API CONFIGURATION
+# ==========================================================
+
+AUTH_URL = (
+    "https://apigtwb2c.us.dell.com/"
+    "auth/oauth/v2/token"
+)
+
+WARRANTY_URL = (
+    "https://apigtwb2c.us.dell.com/"
+    "PROD/sbil/eapi/v5/asset-entitlements"
+)
+
+BATCH_SIZE = 100
+TIMEOUT = 45
+
+
+# ==========================================================
+# HTTP SESSION
+# ==========================================================
+
+def create_session():
+
+    session = requests.Session()
+
+    retry = Retry(
+        total=3,
+        connect=3,
+        read=2,
+        backoff_factor=1,
+        status_forcelist=[429, 500, 502, 503, 504],
+        allowed_methods=["GET"],
+        respect_retry_after_header=True
+    )
+
+    adapter = HTTPAdapter(max_retries=retry)
+
+    session.mount("https://", adapter)
+
+    return session
+
+
+# ==========================================================
+# IMPORT SERVICE TAGS
+# ==========================================================
+
+def clean_tag(value):
+
+    return str(value or "").strip().upper()
+
+
+def read_tags(filepath):
+
+    filepath = Path(filepath)
+
+    values = []
+
+    if filepath.suffix.lower() == ".xlsx":
+
+        wb = load_workbook(
+            filepath,
+            read_only=True,
+            data_only=True
+        )
+
+        ws = wb.active
+
+        for row in ws.iter_rows(values_only=True):
+
+            if row and row[0] is not None:
+                values.append(clean_tag(row[0]))
+
+        wb.close()
+
+    elif filepath.suffix.lower() == ".csv":
+
+        with open(
+            filepath,
+            encoding="utf-8-sig",
+            newline=""
+        ) as file:
+
+            sample = file.read(2048)
+            file.seek(0)
+
+            try:
+                dialect = csv.Sniffer().sniff(
+                    sample,
+                    delimiters=",;\t"
+                )
+            except csv.Error:
+                dialect = csv.excel
+
+            for row in csv.reader(file, dialect):
+
+                if row:
+                    values.append(clean_tag(row[0]))
+
+    else:
+
+        with open(
+            filepath,
+            encoding="utf-8-sig"
+        ) as file:
+
+            values = [
+                clean_tag(line)
+                for line in file
+            ]
+
+    ignored = {
+        "SERVICE TAG",
+        "SERVICETAG",
+        "SERIAL NUMBER",
+        "NUMERO DE SERIE",
+        "NUMÉRO DE SÉRIE",
+        "TAG",
+        "SERIAL"
+    }
+
+    result = []
+    seen = set()
+
+    for tag in values:
+
+        if not tag:
+            continue
+
+        if tag in ignored:
+            continue
+
+        if tag not in seen:
+
+            result.append(tag)
+            seen.add(tag)
+
+    return result
+
+
+# ==========================================================
+# DATE FORMAT
+# ==========================================================
+
+def parse_date(value):
+
+    if not value:
+        return ""
+
+    try:
+
+        return datetime.fromisoformat(
+            str(value).replace("Z", "+00:00")
+        ).strftime("%d/%m/%Y")
+
+    except (ValueError, TypeError):
+
+        return str(value)[:10]
+
+
+# ==========================================================
+# JSON HELPERS
+# ==========================================================
+
+def get_value(data, *keys):
+
+    if not isinstance(data, dict):
+        return None
+
+    for key in keys:
+
+        if key in data:
+            return data[key]
+
+    # Case-insensitive fallback
+    lowered = {
+        str(k).lower(): v
+        for k, v in data.items()
+    }
+
+    for key in keys:
+
+        if key.lower() in lowered:
+            return lowered[key.lower()]
+
+    return None
+
+
+# ==========================================================
+# OAUTH AUTHENTICATION
+# ==========================================================
+
+def get_token(session, client_id, client_secret):
+
+    response = session.post(
+        AUTH_URL,
+
+        auth=(
+            client_id,
+            client_secret
+        ),
+
+        data={
+            "grant_type": "client_credentials"
+        },
+
+        headers={
+            "Accept": "application/json"
+        },
+
+        timeout=TIMEOUT
+    )
+
+    response.raise_for_status()
+
+    data = response.json()
+
+    token = data.get("access_token")
+
+    if not token:
+
+        raise RuntimeError(
+            f"Token OAuth absent : {data}"
+        )
+
+    return token
+
+
+# ==========================================================
+# WARRANTY API
+# ==========================================================
+
+def fetch_batch(session, tags, token):
+
+    response = session.get(
+
+        WARRANTY_URL,
+
+        params={
+            "servicetags": ",".join(tags),
+            "Method": "GET"
+        },
+
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/json"
+        },
+
+        timeout=TIMEOUT
+    )
+
+    response.raise_for_status()
+
+    data = response.json()
+
+    if isinstance(data, list):
+        return data
+
+    if isinstance(data, dict):
+
+        for key in (
+            "assetEntitlementResponse",
+            "AssetEntitlementData",
+            "assets",
+            "data"
+        ):
+
+            result = get_value(data, key)
+
+            if isinstance(result, list):
+                return result
+
+        return [data]
+
+    return []
+
+
+# ==========================================================
+# EXTRACT WARRANTY INFORMATION
+# ==========================================================
+
+def normalize_asset(asset):
+
+    tag = get_value(
+        asset,
+        "serviceTag"
+    ) or ""
+
+    model = get_value(
+        asset,
+        "systemDescription",
+        "productLineDescription",
+        "productLobDescription"
+    ) or ""
+
+    ship_date = get_value(
+        asset,
+        "shipDate"
+    )
+
+    entitlements = get_value(
+        asset,
+        "entitlements"
+    ) or []
+
+    if isinstance(entitlements, dict):
+        entitlements = [entitlements]
+
+    end_dates = []
+    levels = []
+    starts = []
+
+    for item in entitlements:
+
+        if not isinstance(item, dict):
+            continue
+
+        end_date = get_value(
+            item,
+            "endDate"
+        )
+
+        start_date = get_value(
+            item,
+            "startDate"
+        )
+
+        level = get_value(
+            item,
+            "serviceLevelDescription"
+        )
+
+        if end_date:
+
+            try:
+
+                parsed = datetime.fromisoformat(
+                    str(end_date).replace("Z", "+00:00")
+                )
+
+                end_dates.append(parsed)
+
+            except ValueError:
+                pass
+
+        if start_date:
+
+            starts.append(
+                parse_date(start_date)
+            )
+
+        if level and level not in levels:
+
+            levels.append(str(level))
+
+    warranty_end = ""
+
+    if end_dates:
+
+        warranty_end = max(end_dates).strftime(
+            "%d/%m/%Y"
+        )
+
+    warranty_start = ""
+
+    if starts:
+
+        warranty_start = starts[0]
+
+    invalid = get_value(
+        asset,
+        "invalid"
+    )
+
+    if invalid:
+
+        status = "Service Tag invalide"
+
+    elif warranty_end:
+
+        status = "OK"
+
+    else:
+
+        status = "Aucune garantie renvoyée"
+
+    return {
+
+        "Service Tag": tag,
+
+        "Modèle": model,
+
+        "Date d'expédition": parse_date(
+            ship_date
+        ),
+
+        "Début de garantie": warranty_start,
+
+        "Fin de garantie": warranty_end,
+
+        "Niveau de service": " / ".join(levels),
+
+        "Statut": status,
+
+        "GUID / UUID": "Non fourni par Dell Warranty API"
+    }
+
+
+# ==========================================================
+# GRAPHICAL INTERFACE
+# ==========================================================
+
+class DellWarrantyApp:
+
+    def __init__(self, root):
+
+        self.root = root
+
+        self.root.title(
+            "Dell Warranty Checker"
+        )
+
+        self.root.geometry(
+            "1100x700"
+        )
+
+        self.root.minsize(
+            900,
+            600
+        )
+
+        self.events = queue.Queue()
+
+        self.tags = []
+        self.results = []
+
+        self.build_interface()
+
+        self.root.after(
+            150,
+            self.process_events
+        )
+
+    # ------------------------------------------------------
+
+    def build_interface(self):
+
+        main = ttk.Frame(
+            self.root,
+            padding=15
+        )
+
+        main.pack(
+            fill="both",
+            expand=True
+        )
+
+        ttk.Label(
+            main,
+            text="DELL WARRANTY CHECKER",
+            font=("Segoe UI", 20, "bold")
+        ).pack(anchor="w")
+
+        ttk.Label(
+            main,
+            text="Bulk Service Tag Warranty Lookup",
+            font=("Segoe UI", 10)
+        ).pack(anchor="w", pady=(0, 15))
+
+        # API credentials
+
+        credentials = ttk.LabelFrame(
+            main,
+            text="Dell TechDirect API Credentials",
+            padding=12
+        )
+
+        credentials.pack(
+            fill="x"
+        )
+
+        ttk.Label(
+            credentials,
+            text="Client ID"
+        ).grid(
+            row=0,
+            column=0,
+            sticky="w",
+            padx=5,
+            pady=5
+        )
+
+        self.client_id = ttk.Entry(
+            credentials,
+            width=70
+        )
+
+        self.client_id.grid(
+            row=0,
+            column=1,
+            sticky="ew",
+            padx=5,
+            pady=5
+        )
+
+        ttk.Label(
+            credentials,
+            text="Client Secret"
+        ).grid(
+            row=1,
+            column=0,
+            sticky="w",
+            padx=5,
+            pady=5
+        )
+
+        self.client_secret = ttk.Entry(
+            credentials,
+            width=70,
+            show="*"
+        )
+
+        self.client_secret.grid(
+            row=1,
+            column=1,
+            sticky="ew",
+            padx=5,
+            pady=5
+        )
+
+        credentials.columnconfigure(
+            1,
+            weight=1
+        )
+
+        # Buttons
+
+        buttons = ttk.Frame(main)
+
+        buttons.pack(
+            fill="x",
+            pady=15
+        )
+
+        self.import_button = ttk.Button(
+            buttons,
+            text="Import Service Tags",
+            command=self.import_file
+        )
+
+        self.import_button.pack(
+            side="left"
+        )
+
+        self.start_button = ttk.Button(
+            buttons,
+            text="Start Warranty Check",
+            command=self.start
+        )
+
+        self.start_button.pack(
+            side="left",
+            padx=10
+        )
+
+        self.export_button = ttk.Button(
+            buttons,
+            text="Export Excel",
+            command=self.export,
+            state="disabled"
+        )
+
+        self.export_button.pack(
+            side="left"
+        )
+
+        # File information
+
+        self.file_label = ttk.Label(
+            main,
+            text="No file imported"
+        )
+
+        self.file_label.pack(
+            anchor="w"
+        )
+
+        # Progress
+
+        self.progress = ttk.Progressbar(
+            main,
+            mode="determinate"
+        )
+
+        self.progress.pack(
+            fill="x",
+            pady=8
+        )
+
+        self.status = ttk.Label(
+            main,
+            text="Ready"
+        )
+
+        self.status.pack(
+            anchor="w",
+            pady=5
+        )
+
+        # Results table
+
+        columns = (
+            "tag",
+            "model",
+            "ship",
+            "start",
+            "end",
+            "level",
+            "status"
+        )
+
+        self.tree = ttk.Treeview(
+            main,
+            columns=columns,
+            show="headings"
+        )
+
+        headings = {
+
+            "tag": ("Service Tag", 110),
+
+            "model": ("Model", 180),
+
+            "ship": ("Ship Date", 100),
+
+            "start": ("Warranty Start", 110),
+
+            "end": ("Warranty End", 110),
+
+            "level": ("Service Level", 200),
+
+            "status": ("Status", 180)
+        }
+
+        for column, (title, width) in headings.items():
+
+            self.tree.heading(
+                column,
+                text=title
+            )
+
+            self.tree.column(
+                column,
+                width=width,
+                anchor="w"
+            )
+
+        self.tree.pack(
+            fill="both",
+            expand=True,
+            pady=10
+        )
+
+        ttk.Label(
+            main,
+            text=(
+                "UUID/GUID is not exposed by the standard "
+                "Dell Warranty endpoint."
+            ),
+            foreground="#a05a00"
+        ).pack(
+            anchor="w"
+        )
+
+    # ------------------------------------------------------
+    # IMPORT
+    # ------------------------------------------------------
+
+    def import_file(self):
+
+        filepath = filedialog.askopenfilename(
+
+            filetypes=[
+
+                ("Excel", "*.xlsx"),
+
+                ("CSV", "*.csv"),
+
+                ("Text", "*.txt"),
+
+                ("All files", "*.*")
+            ]
+        )
+
+        if not filepath:
+            return
+
+        try:
+
+            self.tags = read_tags(filepath)
+
+            self.results = []
+
+            self.file_label.config(
+
+                text=(
+                    f"{Path(filepath).name} "
+                    f"| {len(self.tags)} Service Tags"
+                )
+            )
+
+            self.status.config(
+                text="File imported successfully"
+            )
+
+            self.export_button.config(
+                state="disabled"
+            )
+
+            for item in self.tree.get_children():
+
+                self.tree.delete(item)
+
+        except Exception as error:
+
+            messagebox.showerror(
+                "Import error",
+                str(error)
+            )
+
+    # ------------------------------------------------------
+    # START
+    # ------------------------------------------------------
+
+    def start(self):
+
+        if not self.tags:
+
+            messagebox.showwarning(
+                "Warning",
+                "Import a Service Tag file first."
+            )
+
+            return
+
+        client_id = self.client_id.get().strip()
+
+        secret = self.client_secret.get().strip()
+
+        if not client_id or not secret:
+
+            messagebox.showwarning(
+                "Missing credentials",
+                "Enter your Dell Client ID and Client Secret."
+            )
+
+            return
+
+        self.import_button.config(
+            state="disabled"
+        )
+
+        self.start_button.config(
+            state="disabled"
+        )
+
+        self.export_button.config(
+            state="disabled"
+        )
+
+        self.results = []
+
+        self.progress["value"] = 0
+
+        self.progress["maximum"] = len(self.tags)
+
+        for item in self.tree.get_children():
+
+            self.tree.delete(item)
+
+        threading.Thread(
+
+            target=self.worker,
+
+            args=(
+                client_id,
+                secret,
+                list(self.tags)
+            ),
+
+            daemon=True
+
+        ).start()
+
+    # ------------------------------------------------------
+    # WORKER
+    # ------------------------------------------------------
+
+    def worker(
+        self,
+        client_id,
+        secret,
+        tags
+    ):
+
+        try:
+
+            session = create_session()
+
+            self.events.put((
+                "status",
+                "Connecting to Dell OAuth..."
+            ))
+
+            token = get_token(
+                session,
+                client_id,
+                secret
+            )
+
+            self.events.put((
+                "status",
+                "Authentication successful"
+            ))
+
+            found = {}
+
+            total = len(tags)
+
+            batches = (
+                total + BATCH_SIZE - 1
+            ) // BATCH_SIZE
+
+            processed = 0
+
+            for index in range(
+                0,
+                total,
+                BATCH_SIZE
+            ):
+
+                batch = tags[
+                    index:index + BATCH_SIZE
+                ]
+
+                batch_number = (
+                    index // BATCH_SIZE
+                ) + 1
+
+                self.events.put((
+                    "status",
+                    f"Checking batch {batch_number}/{batches}"
+                ))
+
+                assets = fetch_batch(
+                    session,
+                    batch,
+                    token
+                )
+
+                for asset in assets:
+
+                    row = normalize_asset(asset)
+
+                    tag = clean_tag(
+                        row["Service Tag"]
+                    )
+
+                    if tag:
+
+                        found[tag] = row
+
+                processed += len(batch)
+
+                self.events.put((
+                    "progress",
+                    processed
+                ))
+
+            # Preserve missing tags in export
+
+            for tag in tags:
+
+                row = found.get(tag)
+
+                if row is None:
+
+                    row = {
+
+                        "Service Tag": tag,
+
+                        "Modèle": "",
+
+                        "Date d'expédition": "",
+
+                        "Début de garantie": "",
+
+                        "Fin de garantie": "",
+
+                        "Niveau de service": "",
+
+                        "Statut": "No result",
+
+                        "GUID / UUID": "Not available"
+                    }
+
+                self.events.put((
+                    "row",
+                    row
+                ))
+
+            session.close()
+
+            self.events.put((
+                "done",
+                None
+            ))
+
+        except requests.exceptions.SSLError as error:
+
+            self.events.put((
+                "error",
+                "SSL certificate error.\n\n"
+                "Check your corporate proxy and certificates.\n\n"
+                + str(error)
+            ))
+
+        except requests.exceptions.ConnectionError as error:
+
+            self.events.put((
+                "error",
+                "Cannot connect to Dell HTTPS server.\n\n"
+                "Check firewall, proxy and network.\n\n"
+                + str(error)
+            ))
+
+        except requests.exceptions.Timeout:
+
+            self.events.put((
+                "error",
+                "Dell connection timed out."
+            ))
+
+        except requests.exceptions.HTTPError as error:
+
+            detail = ""
+
+            if error.response is not None:
+
+                detail = (
+                    f"\nHTTP status: {error.response.status_code}"
+                    f"\nResponse: {error.response.text[:1500]}"
+                )
+
+            self.events.put((
+                "error",
+                str(error) + detail
+            ))
+
+        except Exception as error:
+
+            self.events.put((
+                "error",
+                str(error)
+            ))
+
+    # ------------------------------------------------------
+    # UPDATE INTERFACE
+    # ------------------------------------------------------
+
+    def process_events(self):
+
+        try:
+
+            while True:
+
+                kind, payload = (
+                    self.events.get_nowait()
+                )
+
+                if kind == "status":
+
+                    self.status.config(
+                        text=payload
+                    )
+
+                elif kind == "progress":
+
+                    self.progress["value"] = payload
+
+                elif kind == "row":
+
+                    self.results.append(payload)
+
+                    self.tree.insert(
+
+                        "",
+
+                        "end",
+
+                        values=(
+
+                            payload["Service Tag"],
+
+                            payload["Modèle"],
+
+                            payload["Date d'expédition"],
+
+                            payload["Début de garantie"],
+
+                            payload["Fin de garantie"],
+
+                            payload["Niveau de service"],
+
+                            payload["Statut"]
+                        )
+                    )
+
+                elif kind == "done":
+
+                    self.status.config(
+                        text=(
+                            f"Completed: {len(self.results)} "
+                            "Service Tags"
+                        )
+                    )
+
+                    self.import_button.config(
+                        state="normal"
+                    )
+
+                    self.start_button.config(
+                        state="normal"
+                    )
+
+                    self.export_button.config(
+                        state="normal"
+                    )
+
+                elif kind == "error":
+
+                    self.status.config(
+                        text="Error"
+                    )
+
+                    self.import_button.config(
+                        state="normal"
+                    )
+
+                    self.start_button.config(
+                        state="normal"
+                    )
+
+                    messagebox.showerror(
+                        "Dell API Error",
+                        payload
+                    )
+
+        except queue.Empty:
+
+            pass
+
+        self.root.after(
+            150,
+            self.process_events
+        )
+
+    # ------------------------------------------------------
+    # EXPORT EXCEL
+    # ------------------------------------------------------
+
+    def export(self):
+
+        if not self.results:
+            return
+
+        filepath = filedialog.asksaveasfilename(
+
+            defaultextension=".xlsx",
+
+            initialfile=(
+                f"Dell_Warranty_{datetime.now():%Y%m%d_%H%M}.xlsx"
+            ),
+
+            filetypes=[
+                ("Excel", "*.xlsx")
+            ]
+        )
+
+        if not filepath:
+            return
+
+        wb = Workbook()
+
+        ws = wb.active
+
+        ws.title = "Dell Warranty"
+
+        headers = [
+
+            "Service Tag",
+
+            "Modèle",
+
+            "Date d'expédition",
+
+            "Début de garantie",
+
+            "Fin de garantie",
+
+            "Niveau de service",
+
+            "Statut",
+
+            "GUID / UUID"
+        ]
+
+        ws.append(headers)
+
+        for row in self.results:
+
+            ws.append([
+
+                row.get(header, "")
+
+                for header in headers
+            ])
+
+        ws.freeze_panes = "A2"
+
+        ws.auto_filter.ref = ws.dimensions
+
+        widths = [
+            18, 30, 20, 20, 20, 35, 30, 40
+        ]
+
+        for index, width in enumerate(
+            widths,
+            start=1
+        ):
+
+            ws.column_dimensions[
+                chr(64 + index)
+            ].width = width
+
+        wb.save(filepath)
+
+        messagebox.showinfo(
+
+            "Export completed",
+
+            f"Excel file saved:\n{filepath}"
+        )
+
+
+# ==========================================================
+# MAIN
+# ==========================================================
+
+if __name__ == "__main__":
+
+    root = tk.Tk()
+
+    app = DellWarrantyApp(root)
+
+    root.mainloop()
