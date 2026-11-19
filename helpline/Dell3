@@ -1,0 +1,285 @@
+"""
+Récupère la date de fin de garantie Dell pour une liste de Service Tags.
+
+Entrée  : un fichier Excel avec les Service Tags dans la 1re colonne (en-tête ou non)
+Sortie  : un fichier Excel avec Service Tag | Modèle | Date d'expédition | Fin de garantie | Niveau de service | Statut
+
+Prérequis :
+    pip install requests pandas openpyxl
+
+Identifiants API : à créer sur Dell TechDirect (https://techdirect.dell.com)
+    > Onboard / Warranty API  -> récupérer Client ID + Client Secret
+Les deux peuvent être passés par variables d'environnement :
+    set DELL_CLIENT_ID=xxxx
+    set DELL_CLIENT_SECRET=yyyy
+
+Usage :
+    python dell_warranty.py service_tags.xlsx resultat_garantie.xlsx
+"""
+
+import os
+import sys
+import time
+from datetime import datetime
+
+import pandas as pd
+import requests
+from openpyxl import load_workbook
+from openpyxl.styles import Font, PatternFill
+from openpyxl.utils import get_column_letter
+
+# --------------------------------------------------------------------------- #
+# Configuration
+# --------------------------------------------------------------------------- #
+CLIENT_ID = os.getenv("DELL_CLIENT_ID", "VOTRE_CLIENT_ID")
+CLIENT_SECRET = os.getenv("DELL_CLIENT_SECRET", "VOTRE_CLIENT_SECRET")
+
+TOKEN_URL = "https://apigtwb2c.us.dell.com/auth/oauth/v2/token"
+WARRANTY_URL = "https://apigtwb2c.us.dell.com/PROD/sbil/eapi/v5/asset-entitlements"
+
+BATCH_SIZE = 100          # max accepté par l'API Dell
+PAUSE_BETWEEN_BATCHES = 1  # secondes, pour éviter le rate-limit
+MAX_RETRIES = 3
+TIMEOUT = 60
+
+# Si vous êtes derrière un proxy d'entreprise, décommentez et adaptez :
+# PROXIES = {"http": "http://proxy:8080", "https": "http://proxy:8080"}
+PROXIES = None
+
+
+# --------------------------------------------------------------------------- #
+# API Dell
+# --------------------------------------------------------------------------- #
+def get_token() -> tuple[str, float]:
+    """Récupère un token OAuth2 (client_credentials). Retourne (token, heure_expiration)."""
+    resp = requests.post(
+        TOKEN_URL,
+        data={
+            "client_id": CLIENT_ID,
+            "client_secret": CLIENT_SECRET,
+            "grant_type": "client_credentials",
+        },
+        timeout=TIMEOUT,
+        proxies=PROXIES,
+    )
+    resp.raise_for_status()
+    data = resp.json()
+    expires_at = time.time() + int(data.get("expires_in", 3600)) - 60
+    return data["access_token"], expires_at
+
+
+def query_batch(tags: list[str], token: str) -> list[dict]:
+    """Interroge l'API pour un lot de service tags (max 100)."""
+    headers = {"Authorization": f"Bearer {token}", "Accept": "application/json"}
+    params = {"servicetags": ",".join(tags)}
+
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            resp = requests.get(
+                WARRANTY_URL,
+                headers=headers,
+                params=params,
+                timeout=TIMEOUT,
+                proxies=PROXIES,
+            )
+            if resp.status_code == 429:  # trop de requêtes
+                wait = int(resp.headers.get("Retry-After", 5 * attempt))
+                print(f"   Rate-limit atteint, attente {wait}s...")
+                time.sleep(wait)
+                continue
+            resp.raise_for_status()
+            return resp.json()
+        except requests.RequestException as exc:
+            print(f"   Erreur (tentative {attempt}/{MAX_RETRIES}) : {exc}")
+            if attempt == MAX_RETRIES:
+                raise
+            time.sleep(3 * attempt)
+    return []
+
+
+def parse_date(value: str | None) -> datetime | None:
+    """Convertit '2027-05-12T23:59:59.999Z' en datetime (sans fuseau)."""
+    if not value:
+        return None
+    try:
+        return datetime.strptime(value[:10], "%Y-%m-%d")
+    except ValueError:
+        return None
+
+
+def parse_asset(asset: dict) -> dict:
+    """Extrait les infos utiles d'un asset renvoyé par l'API."""
+    tag = asset.get("serviceTag", "")
+
+    if asset.get("invalid"):
+        return {
+            "Service Tag": tag,
+            "Modèle": "",
+            "Date d'expédition": None,
+            "Fin de garantie": None,
+            "Niveau de service": "",
+            "Statut": "Service Tag invalide",
+        }
+
+    entitlements = asset.get("entitlements") or []
+    # On prend la garantie qui se termine le plus tard
+    best = None
+    best_end = None
+    for ent in entitlements:
+        end = parse_date(ent.get("endDate"))
+        if end and (best_end is None or end > best_end):
+            best, best_end = ent, end
+
+    if best_end is None:
+        statut = "Aucune garantie trouvée"
+    elif best_end < datetime.now():
+        statut = "Expirée"
+    else:
+        statut = "Active"
+
+    return {
+        "Service Tag": tag,
+        "Modèle": asset.get("productLineDescription") or asset.get("systemDescription") or "",
+        "Date d'expédition": parse_date(asset.get("shipDate")),
+        "Fin de garantie": best_end,
+        "Niveau de service": (best or {}).get("serviceLevelDescription", ""),
+        "Statut": statut,
+    }
+
+
+# --------------------------------------------------------------------------- #
+# Excel
+# --------------------------------------------------------------------------- #
+def read_tags(path: str) -> list[str]:
+    """Lit la 1re colonne du fichier Excel, ignore l'en-tête éventuel et les doublons."""
+    df = pd.read_excel(path, header=None, dtype=str)
+    raw = df.iloc[:, 0].dropna().astype(str).str.strip().str.upper()
+    tags = [t for t in raw if t]
+
+    # Ignore une ligne d'en-tête du type "Service Tag", "Serial", "N° de série"...
+    if tags and not tags[0].isalnum():
+        tags = tags[1:]
+    elif tags and len(tags[0]) > 7 and " " in tags[0]:
+        tags = tags[1:]
+    elif tags and tags[0].lower() in {"service tag", "servicetag", "serial", "sn", "numéro de série"}:
+        tags = tags[1:]
+
+    # Dédoublonnage en conservant l'ordre
+    seen, unique = set(), []
+    for t in tags:
+        if t not in seen:
+            seen.add(t)
+            unique.append(t)
+    return unique
+
+
+def write_results(rows: list[dict], path: str) -> None:
+    columns = [
+        "Service Tag",
+        "Modèle",
+        "Date d'expédition",
+        "Fin de garantie",
+        "Niveau de service",
+        "Statut",
+    ]
+    df = pd.DataFrame(rows, columns=columns)
+    df.to_excel(path, index=False, sheet_name="Garanties Dell")
+
+    # Mise en forme
+    wb = load_workbook(path)
+    ws = wb.active
+
+    header_fill = PatternFill("solid", fgColor="1F4E78")
+    for cell in ws[1]:
+        cell.font = Font(name="Arial", bold=True, color="FFFFFF")
+        cell.fill = header_fill
+
+    red = PatternFill("solid", fgColor="F8CBAD")
+    green = PatternFill("solid", fgColor="C6E0B4")
+    orange = PatternFill("solid", fgColor="FFE699")
+
+    for row in ws.iter_rows(min_row=2):
+        for cell in row:
+            cell.font = Font(name="Arial")
+        for idx in (2, 3):  # colonnes dates (C, D)
+            row[idx].number_format = "dd/mm/yyyy"
+        statut = row[5]
+        if statut.value == "Active":
+            statut.fill = green
+        elif statut.value == "Expirée":
+            statut.fill = red
+        else:
+            statut.fill = orange
+
+    for col_idx, col in enumerate(ws.columns, start=1):
+        width = max(len(str(c.value)) if c.value is not None else 0 for c in col)
+        ws.column_dimensions[get_column_letter(col_idx)].width = min(max(width + 3, 14), 50)
+
+    ws.freeze_panes = "A2"
+    ws.auto_filter.ref = ws.dimensions
+    wb.save(path)
+
+
+# --------------------------------------------------------------------------- #
+# Programme principal
+# --------------------------------------------------------------------------- #
+def main() -> None:
+    if len(sys.argv) < 3:
+        print("Usage : python dell_warranty.py <entree.xlsx> <sortie.xlsx>")
+        sys.exit(1)
+
+    input_path, output_path = sys.argv[1], sys.argv[2]
+
+    if CLIENT_ID.startswith("VOTRE_") or CLIENT_SECRET.startswith("VOTRE_"):
+        print("Renseignez DELL_CLIENT_ID et DELL_CLIENT_SECRET (variables d'environnement ou dans le script).")
+        sys.exit(1)
+
+    tags = read_tags(input_path)
+    print(f"{len(tags)} service tags à traiter ({-(-len(tags) // BATCH_SIZE)} lot(s) de {BATCH_SIZE} max).")
+
+    token, expires_at = get_token()
+    results: dict[str, dict] = {}
+
+    for i in range(0, len(tags), BATCH_SIZE):
+        batch = tags[i : i + BATCH_SIZE]
+        print(f"Lot {i // BATCH_SIZE + 1} : {len(batch)} tags...")
+
+        if time.time() >= expires_at:  # renouvelle le token si besoin
+            token, expires_at = get_token()
+
+        try:
+            assets = query_batch(batch, token)
+            for asset in assets:
+                parsed = parse_asset(asset)
+                results[parsed["Service Tag"].upper()] = parsed
+        except requests.RequestException as exc:
+            print(f"   Lot en échec : {exc}")
+            for t in batch:
+                results[t] = {
+                    "Service Tag": t, "Modèle": "", "Date d'expédition": None,
+                    "Fin de garantie": None, "Niveau de service": "",
+                    "Statut": f"Erreur API : {exc}",
+                }
+
+        time.sleep(PAUSE_BETWEEN_BATCHES)
+
+    # On garde l'ordre du fichier d'origine ; les tags non renvoyés par l'API sont signalés
+    rows = []
+    for t in tags:
+        rows.append(
+            results.get(
+                t,
+                {
+                    "Service Tag": t, "Modèle": "", "Date d'expédition": None,
+                    "Fin de garantie": None, "Niveau de service": "",
+                    "Statut": "Non retourné par l'API",
+                },
+            )
+        )
+
+    write_results(rows, output_path)
+    print(f"Terminé -> {output_path}")
+
+
+if __name__ == "__main__":
+    main()
